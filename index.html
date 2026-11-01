@@ -498,9 +498,9 @@ async function bootASCoatingSystem(){
 
   /* 汽車美容施工項目 */
   const WORK_ITEMS=[
-    "打蠟","洗車","精緻洗車","內裝清潔","內裝深層清潔","外觀美容",
+    "洗車","精緻洗車","內裝清潔","內裝深層清潔","外觀美容",
     "漆面拋光","漆面美容","鍍膜","玻璃鍍膜","輪圈清潔",
-    "引擎室清潔","皮革保養","塑料件保養","其他施工"
+    "引擎室清潔","皮革保養","塑料件保養","打蠟","其他施工"
   ];
 
   /* 模組欄位 */
@@ -534,7 +534,7 @@ async function bootASCoatingSystem(){
         options:["材料","耗材","薪資","水費","電費","房屋租金","停車位費用","大樓管理費","勞健保費","other_custom","其他"]},
       {key:"item",label:"支出項目"},
       {key:"amount",label:"支出金額",type:"number",required:true},
-      {key:"payee",label:"廠商／請款對象",type:"datalist",options:["AS"]},
+      {key:"payee",label:"廠商／請款對象",type:"select",options:["","AS","凱爾","為班","57","松哥","杜哥","阿奇","阿奇同事"]},
       {key:"paymentMethod",label:"付款方式",type:"select",
         options:["現金","匯款","信用卡","其他"]},
       {key:"paid",label:"付款狀態",type:"select",options:["未付款","已完成付款"]},
@@ -545,7 +545,7 @@ async function bootASCoatingSystem(){
       {key:"date",label:"代墊日期",type:"date",required:true},
       {key:"item",label:"代墊項目（如：幫奧迪代付之材料/費用）",required:true},
       {key:"amount",label:"代墊金額",type:"number",required:true},
-      {key:"person",label:"代墊對象",type:"datalist",options:["AS"]},
+      {key:"person",label:"代墊對象",type:"select",options:["","AS","凱爾","為班","57","松哥","杜哥","阿奇","阿奇同事"]},
       {key:"status",label:"處理狀態",type:"select",
         options:["待收回","已收回","已抵扣"]},
       {key:"note",label:"備註（請款說明/匯款備註）",type:"textarea",full:true}
@@ -605,7 +605,6 @@ async function bootASCoatingSystem(){
     return str === "AS" || str === "AS奧迪" || str === "ASCOATING";
   };
 
-  // 取得目標激勵用語與文字
   function getMotivationMessage(rate, diff) {
     if (rate >= 100) {
       return {
@@ -1260,6 +1259,8 @@ async function bootASCoatingSystem(){
       `;
     }).join("");
 
+    const vendorOptions=["","凱爾","為班","57","AS","松哥","杜哥","阿奇","阿奇同事"];
+
     return `
       <div class="grid">
         <div class="field">
@@ -1284,12 +1285,9 @@ async function bootASCoatingSystem(){
         </div>
         <div class="field">
           <label>廠商／請款對象</label>
-          <input name="vendorName" list="vendorOptions"
-            value="${safe(r.vendorName||"")}"
-            placeholder="可自行輸入，也可選擇；無廠商可留空">
-          <datalist id="vendorOptions">
-            ${["凱爾","為班","57","AS","松哥","杜哥","阿奇","阿奇同事"].map(v=>`<option value="${v}"></option>`).join("")}
-          </datalist>
+          <select name="vendorName">
+            ${vendorOptions.map(v=>`<option value="${safe(v)}" ${r.vendorName===v?"selected":""}>${v===""?"（無廠商／自由空白）":safe(v)}</option>`).join("")}
+          </select>
         </div>
         <div class="field full">
           <label>施工項目（可複選，各項目可輸入金額）</label>
@@ -1422,14 +1420,6 @@ async function bootASCoatingSystem(){
       `;
     }else if(f.key==="item" && page==="expenses"){
       control=`<input name="item" value="${safe(v)}" placeholder="材料、耗材、其他可自行填寫；其餘類別自動帶入">`;
-    }else if(f.type==="datalist"){
-      const listId = f.key + "Datalist";
-      control=`
-        <input name="${f.key}" list="${listId}" value="${safe(v)}" placeholder="可自行輸入或選擇 AS (空白則不填)">
-        <datalist id="${listId}">
-          ${f.options.map(opt=>`<option value="${safe(opt)}">`).join("")}
-        </datalist>
-      `;
     }else if(f.type==="textarea"){
       control=`<textarea name="${f.key}">${safe(v)}</textarea>`;
     }else if(f.type==="checkbox"){
@@ -1544,8 +1534,9 @@ async function bootASCoatingSystem(){
           <td><input type="text" class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="item" value="${safe(r.item)}"></td>
           <td><input type="number" class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="amount" value="${safe(r.amount)}"></td>
           <td>
-            <input type="text" class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="person" list="personDatalist" value="${safe(r.person||"")}" placeholder="AS或空白">
-            <datalist id="personDatalist"><option value="AS"></option></datalist>
+            <select class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="person">
+              ${["","AS","凱爾","為班","57","松哥","杜哥","阿奇","阿奇同事"].map(p=>`<option ${r.person===p?"selected":""}>${p===""?"（空白）":p}</option>`)}
+            </select>
           </td>
           <td>
             <select class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="status">
@@ -1584,8 +1575,9 @@ async function bootASCoatingSystem(){
           <td><input type="text" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="item" value="${safe(r.item||"")}"></td>
           <td><input type="number" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="amount" value="${safe(r.amount)}"><span class="small-muted" style="display:block">${displayAmtText}</span></td>
           <td>
-            <input type="text" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="payee" list="payeeDatalist" value="${safe(r.payee||"")}" placeholder="AS或空白">
-            <datalist id="payeeDatalist"><option value="AS"></option></datalist>
+            <select class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="payee">
+              ${["","AS","凱爾","為班","57","松哥","杜哥","阿奇","阿奇同事"].map(p=>`<option ${r.payee===p?"selected":""}>${p===""?"（空白）":p}</option>`)}
+            </select>
           </td>
           <td>
             <select class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="paymentMethod">
