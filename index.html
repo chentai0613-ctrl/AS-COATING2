@@ -274,10 +274,28 @@ textarea{min-height:75px;resize:vertical}
 .toolbar input{flex:1;min-width:160px}
 .toolbar select{width:auto;min-width:130px;max-width:100%}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
+
+/* 表格專屬包裝：手機模式下自動取消水平捲動、讓表格完整展開以便截圖 */
 .table-wrap{
   width:100%;max-width:100%;overflow-x:auto;
   -webkit-overflow-scrolling:touch;
 }
+@media(max-width:768px){
+  .table-wrap{
+    overflow-x:visible!important;
+  }
+  table{
+    min-width:0!important;
+    width:100%!important;
+    table-layout:fixed;
+  }
+  th,td{
+    padding:6px 4px!important;
+    font-size:11px!important;
+    word-break:break-all;
+  }
+}
+
 table{width:100%;border-collapse:collapse;min-width:720px}
 th,td{
   padding:11px 9px;border-bottom:1px solid var(--line);
@@ -503,8 +521,8 @@ async function bootASCoatingSystem(){
     "引擎室清潔","皮革保養","塑料件保養","打蠟","其他施工"
   ];
 
-  /* 常用廠商預設名單 */
-  const DEFAULT_VENDORS = ["凱爾","為班","57","AS","松哥","杜哥","阿奇","阿奇同事"];
+  /* 常用廠商預設名單（指定為 AS 供支出與代墊選取） */
+  const DEFAULT_VENDORS = ["AS"];
 
   /* 模組欄位 */
   const MODULES={
@@ -561,7 +579,7 @@ async function bootASCoatingSystem(){
         options:[
           "AS-奧迪委託施工","房屋租金","場地抵扣租金",
           "停車位費用","大樓管理費","勞健保費",
-          "水費","電費","其他"
+          "水費","電費","other_custom","other","其他"
         ]},
       {key:"item",label:"項目說明"},
       {key:"amount",label:"原始金額",type:"number",required:true},
@@ -1289,7 +1307,7 @@ async function bootASCoatingSystem(){
           <input name="carColor" value="${safe(r.carColor||"")}" placeholder="例如：白、黑、銀">
         </div>
         <div class="field">
-          <label>廠商／請款對象（可選或自訂）</label>
+          <label>廠商／請款對象（可選AS或自訂）</label>
           <select id="workVendorSelect" style="margin-bottom:6px">
             <option value="">（無廠商／自由空白）</option>
             ${DEFAULT_VENDORS.map(v=>`<option value="${safe(v)}" ${selectVal===v?"selected":""}>${safe(v)}</option>`).join("")}
@@ -1581,13 +1599,22 @@ async function bootASCoatingSystem(){
 
   function genericRows(m,list,fields){
     if(m==="advances"){
-      return list.map(r=>`
+      return list.map(r=>{
+        const pVal = r.person || "";
+        const isPreset = DEFAULT_VENDORS.includes(pVal);
+        const selVal = pVal === "" ? "" : (isPreset ? pVal : "CUSTOM_INPUT");
+        return `
         <tr data-row-id="${safe(r.id)}">
           <td><input type="date" class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="date" value="${safe(r.date)}"></td>
           <td><input type="text" class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="item" value="${safe(r.item)}"></td>
           <td><input type="number" class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="amount" value="${safe(r.amount)}"></td>
           <td>
-            <input type="text" class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="person" value="${safe(r.person||"")}" placeholder="代墊對象">
+            <select class="mini inline-adv-input inline-vendor-select" data-id="${safe(r.id)}" data-field="person" data-target-input="personInput_${safe(r.id)}" style="margin-bottom:4px">
+              <option value="">（無）</option>
+              ${DEFAULT_VENDORS.map(opt=>`<option value="${safe(opt)}" ${selVal===opt?"selected":""}>${safe(opt)}</option>`).join("")}
+              <option value="CUSTOM_INPUT" ${selVal==="CUSTOM_INPUT"?"selected":""}>✏️其他</option>
+            </select>
+            <input type="text" id="personInput_${safe(r.id)}" class="mini inline-adv-input ${selVal==="CUSTOM_INPUT"?"":"hidden"}" data-id="${safe(r.id)}" data-field="person" value="${safe(pVal)}" placeholder="代墊對象">
           </td>
           <td>
             <select class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="status">
@@ -1601,7 +1628,7 @@ async function bootASCoatingSystem(){
             <button class="danger mini" data-delete="${safe(r.id)}">刪除</button>
           </td>
         </tr>
-      `).join("");
+      `;}).join("");
     }
     if(m==="expenses"){
       return list.map(r=>{
@@ -1612,6 +1639,10 @@ async function bootASCoatingSystem(){
         } else if (r.category === "電費") {
           displayAmtText = `${money(amt)} <span class="small-muted" style="display:block">(負擔: ${money(amt * 0.4)})</span>`;
         }
+
+        const payeeVal = r.payee || "";
+        const isPreset = DEFAULT_VENDORS.includes(payeeVal);
+        const selVal = payeeVal === "" ? "" : (isPreset ? payeeVal : "CUSTOM_INPUT");
 
         return `
         <tr data-row-id="${safe(r.id)}">
@@ -1626,7 +1657,12 @@ async function bootASCoatingSystem(){
           <td><input type="text" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="item" value="${safe(r.item||"")}"></td>
           <td><input type="number" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="amount" value="${safe(r.amount)}"><span class="small-muted" style="display:block">${displayAmtText}</span></td>
           <td>
-            <input type="text" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="payee" value="${safe(r.payee||"")}" placeholder="請款對象">
+            <select class="mini inline-exp-input inline-vendor-select" data-id="${safe(r.id)}" data-field="payee" data-target-input="payeeInput_${safe(r.id)}" style="margin-bottom:4px">
+              <option value="">（無）</option>
+              ${DEFAULT_VENDORS.map(opt=>`<option value="${safe(opt)}" ${selVal===opt?"selected":""}>${safe(opt)}</option>`).join("")}
+              <option value="CUSTOM_INPUT" ${selVal==="CUSTOM_INPUT"?"selected":""}>✏️其他</option>
+            </select>
+            <input type="text" id="payeeInput_${safe(r.id)}" class="mini inline-exp-input ${selVal==="CUSTOM_INPUT"?"":"hidden"}" data-id="${safe(r.id)}" data-field="payee" value="${safe(payeeVal)}" placeholder="請款對象">
           </td>
           <td>
             <select class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="paymentMethod">
@@ -1811,7 +1847,9 @@ async function bootASCoatingSystem(){
           if(!f)return;
           let val=inp.value;
           if(f==="amount" || f==="target" || f==="workdays" || f==="share") val=val===""?"":Number(val||0);
-          updatedData[f]=val;
+          if(updatedData[f] === undefined || (updatedData[f] !== "" && val !== "")) {
+            updatedData[f]=val;
+          }
         });
 
         if(mod==="advances" && isASPerson(updatedData.person)) updatedData.person="AS-奧迪";
@@ -1876,6 +1914,21 @@ async function bootASCoatingSystem(){
       bindInvoiceTools();
     }else{
       bindVendorDuals();
+      document.querySelectorAll(".inline-vendor-select").forEach(sel=>{
+        const targetId = sel.dataset.targetInput;
+        const inp = $(targetId);
+        if(!inp)return;
+        sel.onchange = () => {
+          if(sel.value === "CUSTOM_INPUT"){
+            inp.classList.remove("hidden");
+            inp.focus();
+            inp.value = "";
+          } else {
+            inp.classList.add("hidden");
+            inp.value = sel.value;
+          }
+        };
+      });
     }
 
     if(m==="landlord")bindLandlord();
