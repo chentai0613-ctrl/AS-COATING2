@@ -1,0 +1,2373 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AS COATING｜營運管理系統</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root{
+  --bg:#f3f1ec;
+  --ink:#37433d;
+  --muted:#818a84;
+  --line:#e8e6df;
+  --green:#648875;
+  --orange:#c58a55;
+  --blue:#698db5;
+  --red:#c36e70;
+  --purple:#9278ad;
+  --white:#fff;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;width:100%;max-width:100%;min-height:100%;
+  overflow-x:hidden;
+}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif;
+}
+button,input,select,textarea{font:inherit}
+button{
+  cursor:pointer;border:0;border-radius:9px;
+  padding:10px 14px;max-width:100%;
+}
+button:disabled{opacity:.5;cursor:not-allowed}
+.primary{background:#71877b;color:white}
+.secondary{background:#edf0ec;color:#425248}
+.danger{background:#f8e8e6;color:#b84242}
+.purple-btn{background:#eee8f5;color:#755d91}
+.hidden{display:none!important}
+
+/* 登入畫面 */
+#loginPage{
+  min-height:100vh;display:grid;place-items:center;
+  background:linear-gradient(135deg,#e9e5dc,#d9e3dc,#e8e1ec);
+  padding:20px;
+}
+.login-card{
+  background:white;width:100%;max-width:430px;padding:38px;
+  border-radius:22px;text-align:center;
+  box-shadow:0 12px 40px #26372c12;
+}
+.logo{font-size:27px;font-weight:900;letter-spacing:4px}
+.sublogo{
+  font-size:11px;letter-spacing:3px;color:var(--muted);
+  margin:8px 0 28px;
+}
+.login-card button{width:100%;margin-top:10px}
+
+/* 頂部及主架構 */
+.topbar{
+  min-height:66px;background:white;display:flex;
+  align-items:center;justify-content:space-between;
+  padding:10px 24px;border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:20;gap:12px;
+}
+.topbar .logo{font-size:19px;letter-spacing:2px}
+.user-area{display:flex;align-items:center;gap:12px;min-width:0}
+.userbox{
+  text-align:right;font-size:12px;color:var(--muted);
+  line-height:1.7;overflow-wrap:anywhere;
+}
+.mode{
+  font-size:11px;border-radius:20px;padding:4px 9px;
+  background:#edf0ec;margin-left:8px;white-space:nowrap;
+}
+.layout{display:flex;min-height:calc(100vh - 66px);width:100%}
+.sidebar{
+  width:215px;flex-shrink:0;background:#e8e9e2;padding:18px 12px;
+}
+.nav-label{font-size:11px;color:var(--muted);padding:12px}
+.nav{
+  display:block;width:100%;text-align:left;background:transparent;
+  color:#526057;margin:3px 0;padding:12px;
+}
+.nav.active,.nav:hover{
+  background:white;color:#536b60;font-weight:bold;
+}
+.main{padding:26px;flex:1;min-width:0;width:100%}
+.page-title{font-size:24px;font-weight:800;margin:0 0 5px}
+.page-desc{
+  font-size:13px;color:var(--muted);margin:5px 0 20px;
+  line-height:1.7;
+}
+.page-top{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;margin-bottom:15px;
+}
+.back-dashboard{background:#e9eee9;color:#526b5c;font-weight:700}
+
+/* 營運總覽 */
+.dashboard-heading{
+  display:flex;justify-content:space-between;
+  align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px;
+}
+.month-picker{
+  display:flex;align-items:center;gap:9px;
+  background:white;padding:8px 12px;border-radius:11px;
+}
+.month-picker label{font-size:12px;color:var(--muted)}
+.month-picker input{border:0;padding:5px;max-width:155px}
+.metrics{
+  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:13px;margin-bottom:20px;
+}
+.metric{
+  position:relative;overflow:hidden;border-radius:15px;
+  padding:18px;background:white;box-shadow:0 5px 22px #29382f08;
+  cursor:pointer;transition:.2s;border:1px solid transparent;
+  min-width:0;
+}
+.metric:hover{
+  transform:translateY(-3px);
+  box-shadow:0 9px 25px #29382f15;
+}
+.metric:after{
+  content:"";position:absolute;right:-20px;top:-25px;
+  width:85px;height:85px;border-radius:50%;
+  opacity:.13;background:currentColor;pointer-events:none;
+}
+.metric-label{font-size:12px;color:#68736c}
+.metric-value{
+  font-size:23px;font-weight:900;margin-top:10px;
+  overflow-wrap:anywhere;
+}
+.metric-note{font-size:11px;color:#858d87;margin-top:6px}
+.metric.green{color:#4f8064;background:linear-gradient(140deg,#edf5ef,#fff)}
+.metric.orange{color:#b97942;background:linear-gradient(140deg,#fbf0e5,#fff)}
+.metric.blue{color:#5d7fa9;background:linear-gradient(140deg,#edf2fa,#fff)}
+.metric.red{color:#b65d62;background:linear-gradient(140deg,#faeded,#fff)}
+.metric.purple{color:#866da4;background:linear-gradient(140deg,#f2edf8,#fff)}
+.metric-value{color:inherit}
+.panel{
+  background:white;border-radius:15px;padding:19px;
+  box-shadow:0 5px 22px #29382f08;margin-bottom:18px;
+  min-width:0;
+}
+.panel h3{font-size:16px;margin:0 0 15px}
+.panel-head{
+  display:flex;justify-content:space-between;
+  align-items:center;gap:10px;flex-wrap:wrap;
+}
+.chart-grid{
+  display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);
+  gap:17px;
+}
+.chart-box{height:280px;position:relative;min-width:0}
+.vendor-list{display:flex;flex-direction:column;gap:9px}
+.vendor-row{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:12px;text-align:left;width:100%;background:#faf9f6;
+  padding:13px;border-radius:10px;color:var(--ink);
+}
+.vendor-row:hover{background:#f2eee8}
+.vendor-name{font-weight:700;font-size:13px}
+.vendor-detail{font-size:11px;color:var(--muted);margin-top:5px}
+.vendor-amount{
+  font-size:15px;font-weight:900;color:#bd6262;white-space:nowrap;
+}
+.vendor-empty{
+  padding:24px;text-align:center;color:var(--muted);font-size:13px;
+}
+.progress{
+  height:12px;background:#edf0eb;border-radius:20px;
+  overflow:hidden;margin:14px 0;
+}
+.progress>div{
+  height:100%;background:linear-gradient(90deg,#aab9ae,#637d70);
+}
+.summary-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;
+}
+.summary-card{
+  padding:14px;border-radius:11px;background:#f7f7f3;
+  min-width:0;overflow-wrap:anywhere;
+}
+.summary-card b{display:block;font-size:19px;margin-top:6px}
+.goal-progress-grid{
+  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:10px;margin:14px 0 4px
+}
+.goal-progress-item{
+  min-width:0;padding:14px;border-radius:11px;
+  background:#f7f7f3;overflow-wrap:anywhere
+}
+.goal-progress-label{font-size:12px;color:var(--muted);font-weight:700}
+.goal-progress-value{font-size:20px;font-weight:900;margin-top:8px;color:var(--ink)}
+@media(max-width:900px){
+  .goal-progress-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:600px){
+  .goal-progress-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .goal-progress-item{padding:12px}
+  .goal-progress-value{font-size:17px}
+}
+.red-text{color:#c43f43}
+.green-text{color:#648875}
+.orange-text{color:#c58a55}
+
+/* 預估淨利報表 */
+.profit-summary{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;margin-bottom:18px;
+}
+.profit-card{
+  padding:18px;border-radius:13px;background:#f7f7f3;
+  min-width:0;
+}
+.profit-card .label{font-size:12px;color:var(--muted)}
+.profit-card .value{
+  font-size:23px;font-weight:900;margin-top:9px;
+  overflow-wrap:anywhere;
+}
+.profit-card.revenue .value{color:#648875}
+.profit-card.expense .value{color:#c58a55}
+.profit-card.net .value{color:#698db5}
+.report-section-title{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;flex-wrap:wrap;margin-bottom:13px;
+}
+.report-section-title h3{margin:0}
+.report-total{
+  text-align:right;padding:15px;background:#f7f7f3;
+  border-radius:10px;margin-top:12px;font-weight:800;
+}
+.report-total strong{font-size:20px}
+.report-empty{
+  text-align:center;padding:22px;color:var(--muted);
+}
+
+/* 表單及列表 */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field.full{grid-column:1/-1}
+.field label{font-size:12px;color:var(--muted);font-weight:bold}
+input,select,textarea{
+  width:100%;max-width:100%;min-width:0;
+  border:1px solid var(--line);border-radius:8px;
+  padding:10px;background:white;color:var(--ink);
+}
+textarea{min-height:75px;resize:vertical}
+.toolbar{
+  display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px;
+  align-items:center;
+}
+.toolbar input{flex:1;min-width:160px}
+.toolbar select{width:auto;min-width:130px;max-width:100%}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
+.table-wrap{
+  width:100%;max-width:100%;overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+table{width:100%;border-collapse:collapse;min-width:720px}
+th,td{
+  padding:11px 9px;border-bottom:1px solid var(--line);
+  text-align:left;font-size:13px;vertical-align:top;
+}
+th{background:#fafaf8;color:var(--muted);font-size:12px}
+.mini{padding:6px 9px;font-size:11px}
+.status{
+  display:inline-block;border-radius:20px;padding:4px 8px;
+  font-size:11px;background:#edf1ed;color:#536b60;
+}
+.status.warn{background:#f8eee4;color:#a46c34}
+.status.bad{background:#f8e8e6;color:#b84242}
+.note{font-size:12px;color:var(--muted);line-height:1.8}
+.check{display:flex;align-items:center;gap:8px}
+.check input{width:18px;height:18px}
+.empty{
+  text-align:center;padding:25px;color:#929992;
+}
+.item-list{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
+}
+.item-row{
+  display:grid;grid-template-columns:22px minmax(0,1fr) minmax(75px,110px);
+  gap:8px;align-items:center;padding:9px;
+  background:#faf9f6;border-radius:9px;min-width:0;
+}
+.item-row input[type=checkbox]{width:17px;height:17px}
+.item-row input[type=number]{padding:7px}
+.total-box{
+  background:#f2f5f1;border-radius:10px;padding:14px;
+  display:flex;justify-content:space-between;align-items:center;
+  gap:12px;font-weight:800;
+}
+.invoice-total{font-size:25px;color:#c43f43;font-weight:900}
+.small-muted{font-size:11px;color:var(--muted)}
+#toast{
+  display:none;position:fixed;right:20px;bottom:20px;z-index:50;
+  background:#35413b;color:white;padding:12px 18px;
+  border-radius:10px;max-width:90vw;
+}
+
+/* 針對半屏或較窄視窗（小於 1024px）自動調整工作紀錄表單與施工項目清單 */
+@media(max-width:1024px){
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .field.full{grid-column:1/-1}
+  .item-list{grid-template-columns:1fr}
+}
+
+/* 列印請款單 */
+.print-title{display:none}
+@media print{
+  body{background:white}
+  .topbar,.sidebar,.no-print,#loginPage,#toast{display:none!important}
+  .layout{display:block}
+  .main{padding:0}
+  .panel{box-shadow:none;border:0;padding:8px}
+  table{min-width:0}
+  th,td{font-size:10pt;padding:7px}
+  .invoice-total{
+    color:#c00000!important;font-size:28pt!important;
+    font-weight:900!important;
+  }
+  .print-title{display:block!important}
+}
+
+/* 響應式版面 */
+@media(max-width:1150px){
+  .metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:900px){
+  .layout{display:block}
+  .sidebar{
+    width:100%;display:flex;overflow-x:auto;
+    white-space:nowrap;padding:7px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .nav-label{display:none}
+  .nav{white-space:nowrap;width:auto;flex:0 0 auto;padding:10px}
+  .main{padding:18px}
+  .chart-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .topbar{padding:10px 12px;flex-wrap:wrap}
+  .topbar .logo{font-size:15px}
+  .user-area{gap:7px}
+  .userbox{font-size:10px}
+  .main{padding:12px}
+  .metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .metric{padding:13px}
+  .metric-value{font-size:18px}
+  .grid{grid-template-columns:1fr}
+  .field.full{grid-column:auto}
+  .item-list{grid-template-columns:1fr}
+  .chart-box{height:245px}
+  .summary-grid{grid-template-columns:1fr 1fr}
+  .profit-summary{grid-template-columns:1fr}
+  .profit-card .value{font-size:21px}
+  .page-top{align-items:stretch}
+  .back-dashboard{width:100%}
+  .toolbar{display:grid;grid-template-columns:1fr}
+  .toolbar input,.toolbar select{width:100%;min-width:0}
+  .month-picker{width:100%;justify-content:space-between}
+  .month-picker input{max-width:65%}
+  .panel{padding:14px}
+}
+@media(max-width:360px){
+  .metrics{grid-template-columns:1fr}
+  .summary-grid{grid-template-columns:1fr}
+  .item-row{grid-template-columns:20px minmax(0,1fr) 85px}
+}
+</style>
+</head>
+
+<body>
+
+<!-- 登入畫面 -->
+<section id="loginPage">
+  <div class="login-card">
+    <div class="logo">AS COATING</div>
+    <div class="sublogo">BUSINESS MANAGEMENT SYSTEM</div>
+    <p>請選擇進入方式</p>
+    <button class="primary" id="loginBtn">Google Gmail 登入</button>
+    <button class="secondary" id="guestTestBtn">不用登入，直接進入測試模式</button>
+    <p id="loginError" class="note"></p>
+  </div>
+</section>
+
+<!-- 系統主畫面 -->
+<section id="app" class="hidden">
+  <header class="topbar">
+    <div class="logo">AS COATING <span id="modeBadge" class="mode"></span></div>
+    <div class="user-area">
+      <div class="userbox">
+        <div id="userEmail"></div>
+        <div id="userRole"></div>
+      </div>
+      <button class="secondary" id="logoutBtn">離開</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="nav-label">營運管理</div>
+      <button class="nav active" data-page="dashboard">總覽儀表板</button>
+      <button class="nav" data-page="work">工作紀錄</button>
+      <button class="nav" data-page="expenses">支出記帳</button>
+      <button class="nav" data-page="advances">代墊管理</button>
+      <button class="nav" data-page="landlord">AS-奧迪往來結算</button>
+      <button class="nav" data-page="goals">目標設定</button>
+    </aside>
+    <main class="main">
+      <div id="pageContent"></div>
+    </main>
+  </div>
+</section>
+
+<div id="toast"></div>
+
+<script>
+/* 登入按鈕啟動保護：Firebase 模組尚未載入時，先提供明確的操作狀態。 */
+(function(){
+  const showBootMessage=message=>{
+    const box=document.getElementById("loginError");
+    if(box)box.textContent=message;
+  };
+  const login=document.getElementById("loginBtn");
+  const guest=document.getElementById("guestTestBtn");
+  if(login)login.addEventListener("click",function(){
+    showBootMessage("系統正在初始化，請稍候；若持續沒有反應，請重新整理頁面。");
+  });
+  if(guest)guest.addEventListener("click",function(){
+    showBootMessage("測試模式尚在載入中，請稍候；若出現載入錯誤，請依錯誤訊息檢查網路或 Firebase 設定。");
+  });
+})();
+</script>
+
+<script type="module">
+async function bootASCoatingSystem(){
+  const firebaseAppModule=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+  const firebaseAuthModule=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+  const firebaseStoreModule=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+  const {initializeApp}=firebaseAppModule;
+  const {
+    getAuth,GoogleAuthProvider,signInWithPopup,
+    onAuthStateChanged,signOut
+  }=firebaseAuthModule;
+  const {
+    getFirestore,collection,addDoc,getDocs,
+    doc,updateDoc,deleteDoc,serverTimestamp
+  }=firebaseStoreModule;
+
+  /* Firebase 專案設定 */
+  const firebaseConfig={
+    apiKey:"AIzaSyCX6aW1vpKV9fm3oZTI-c4VdhFJBrIAP4",
+    authDomain:"as-coating2.firebaseapp.com",
+    projectId:"as-coating2",
+    storageBucket:"as-coating2.firebasestorage.app",
+    messagingSenderId:"418568938042",
+    appId:"1:418568938042:web:a0b0e4bd5c2fcc2cefcb03",
+    measurementId:"G-268BJNF40M"
+  };
+
+  const fb=initializeApp(firebaseConfig);
+  const auth=getAuth(fb);
+  const db=getFirestore(fb);
+  const provider=new GoogleAuthProvider();
+  provider.setCustomParameters({prompt:"select_account"});
+
+  /* 帳號權限 */
+  const ADMIN=[
+    "chentai0613@gmail.com",
+    "a0917240956@gmail.com"
+  ];
+  const TEST=[
+    "asd77890321@gmail.com"
+  ];
+
+  /* 汽車美容施工項目 */
+  const WORK_ITEMS=[
+    "洗車","精緻洗車","內裝清潔","內裝深層清潔","外觀美容",
+    "漆面拋光","漆面美容","鍍膜","玻璃鍍膜","輪圈清潔",
+    "引擎室清潔","皮革保養","塑料件保養","其他施工"
+  ];
+
+  /* 模組欄位 */
+  const MODULES={
+    work:{
+      title:"工作紀錄",
+      desc:"所有施工營收統一記錄於此，可依月份、車牌、車主、廠商及施工項目搜尋。"
+    },
+    expenses:{
+      title:"支出記帳",
+      desc:"記錄本公司營運各項支出，可區分已付款與未付款。"
+    },
+    advances:{
+      title:"代墊管理",
+      desc:"記錄幫奧迪（或客戶/廠商）先行代墊付款之項目，後續向其請款收回/抵扣，不計入本公司營運支出。"
+    },
+    landlord:{
+      title:"AS-奧迪往來結算",
+      desc:"記錄 AS-奧迪施工款、場地費用、代墊請款、水電分攤及月底結算。"
+    },
+    goals:{
+      title:"目標設定",
+      desc:"設定每月營收目標及上班天數，自動計算平均每日台數與營收。"
+    }
+  };
+
+  const FIELDS={
+    expenses:[
+      {key:"date",label:"支出日期",type:"date",required:true},
+      {key:"category",label:"支出類別",type:"select",
+        options:["材料","耗材","薪資","水費","電費","房屋租金","停車位費用","大樓管理費","勞健保費","other_custom","其他"]},
+      {key:"item",label:"支出項目"},
+      {key:"amount",label:"支出金額",type:"number",required:true},
+      {key:"payee",label:"廠商／請款對象",type:"datalist",options:["AS"]},
+      {key:"paymentMethod",label:"付款方式",type:"select",
+        options:["現金","匯款","信用卡","其他"]},
+      {key:"paid",label:"付款狀態",type:"select",options:["未付款","已完成付款"]},
+      {key:"paidDate",label:"付款日期",type:"date"},
+      {key:"note",label:"備註",type:"textarea",full:true}
+    ],
+    advances:[
+      {key:"date",label:"代墊日期",type:"date",required:true},
+      {key:"item",label:"代墊項目（如：幫奧迪代付之材料/費用）",required:true},
+      {key:"amount",label:"代墊金額",type:"number",required:true},
+      {key:"person",label:"代墊對象",type:"datalist",options:["AS"]},
+      {key:"status",label:"處理狀態",type:"select",
+        options:["待收回","已收回","已抵扣"]},
+      {key:"note",label:"備註（請款說明/匯款備註）",type:"textarea",full:true}
+    ],
+    landlord:[
+      {key:"date",label:"日期",type:"date",required:true},
+      {key:"direction",label:"款項方向",type:"select",
+        options:["AS-奧迪應付 AS COATING","AS COATING 應付 AS-奧迪"]},
+      {key:"category",label:"項目類別",type:"select",
+        options:[
+          "AS-奧迪委託施工","房屋租金","場地抵扣租金",
+          "停車位費用","大樓管理費","勞健保費",
+          "水費","電費","其他"
+        ]},
+      {key:"item",label:"項目說明"},
+      {key:"amount",label:"原始金額",type:"number",required:true},
+      {key:"share",label:"AS COATING 負擔比例（%）",type:"number"},
+      {key:"note",label:"備註",type:"textarea",full:true}
+    ],
+    goals:[
+      {key:"month",label:"目標月份",type:"month",required:true},
+      {key:"target",label:"月營收目標",type:"number",required:true},
+      {key:"workdays",label:"本月上班天數",type:"number",required:true}
+    ]
+  };
+
+  /* 系統狀態 */
+  let user=null;
+  let role=null;
+  let page="dashboard";
+  let records=[];
+  let editing=null;
+  let search="";
+  let vendorFilter="";
+  let paymentFilter="全部";
+  let dashboardMonth=new Date().toISOString().slice(0,7);
+  let invoiceMonth=dashboardMonth;
+  let revenueChart=null;
+  let itemChart=null;
+  let guestMode=false;
+  let authActionInProgress=false;
+
+  const $=id=>document.getElementById(id);
+  const guest=()=>role==="guest";
+  const money=n=>"$"+Number(n||0).toLocaleString("zh-TW",{maximumFractionDigits:0});
+  const amount=r=>Number(r.amount||0);
+  const sum=(arr,fn=r=>amount(r))=>arr.reduce((s,r)=>s+Number(fn(r)||0),0);
+  const today=()=>new Date().toISOString().slice(0,10);
+  const isMonth=(r,m)=>String(r.date||r.month||"").slice(0,7)===m;
+  const monthName=m=>m?m.replace("-"," 年 ")+" 月":"";
+  const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+
+  const isASPerson = s => {
+    const str = String(s || "").trim().toUpperCase().replace(/[-\s]/g, "");
+    return str === "AS" || str === "AS奧迪" || str === "ASCOATING";
+  };
+
+  const toast=s=>{
+    const t=$("toast");
+    if(!t)return;
+    t.textContent=s;
+    t.style.display="block";
+    clearTimeout(toast.timer);
+    toast.timer=setTimeout(()=>t.style.display="none",2800);
+  };
+
+  const guestKey=m=>"AS_COATING_GUEST_"+m;
+  function guestRead(m){
+    try{return JSON.parse(localStorage.getItem(guestKey(m))||"[]")}
+    catch{return []}
+  }
+  function guestWrite(m,data){
+    localStorage.setItem(guestKey(m),JSON.stringify(data));
+  }
+
+  function col(m){
+    if(role==="admin"){
+      return collection(db,"production",m,"records");
+    }
+    if(role==="tester"){
+      return collection(db,"testing",user.uid,m);
+    }
+    throw new Error("免登入模式不可連接 Firebase");
+  }
+
+  async function read(m){
+    if(guest())return guestRead(m);
+    const snap=await getDocs(col(m));
+    return snap.docs.map(d=>({id:d.id,...d.data()}));
+  }
+
+  async function allData(){
+    const names=Object.keys(MODULES);
+    const values=await Promise.all(names.map(read));
+    return Object.fromEntries(names.map((k,i)=>[k,values[i]]));
+  }
+
+  function enter(email,desc,badge){
+    $("userEmail").textContent=email;
+    $("userRole").textContent=desc;
+    $("modeBadge").textContent=badge;
+    $("loginPage").classList.add("hidden");
+    $("app").classList.remove("hidden");
+  }
+
+  function leaveToLogin(){
+    user=null;
+    role=null;
+    guestMode=false;
+    $("app").classList.add("hidden");
+    $("loginPage").classList.remove("hidden");
+  }
+
+  $("loginBtn").onclick=async()=>{
+    try{
+      $("loginError").textContent="";
+      authActionInProgress=true;
+      await signInWithPopup(auth,provider);
+    }catch(e){
+      $("loginError").textContent="登入失敗："+e.message;
+    }finally{
+      authActionInProgress=false;
+    }
+  };
+
+  $("guestTestBtn").onclick=async()=>{
+    guestMode=true;
+    user=null;
+    role="guest";
+    enter("訪客測試人員","免登入測試｜資料僅存目前瀏覽器","本機測試");
+    await loadPage("dashboard");
+  };
+
+  $("logoutBtn").onclick=async()=>{
+    if(guest()){
+      leaveToLogin();
+      return;
+    }
+    try{await signOut(auth)}
+    catch(e){toast("登出失敗："+e.message)}
+  };
+
+  onAuthStateChanged(auth,async u=>{
+    if(guestMode)return;
+    if(!u){
+      if(authActionInProgress)return;
+      user=null;
+      role=null;
+      $("app").classList.add("hidden");
+      $("loginPage").classList.remove("hidden");
+      return;
+    }
+
+    const email=(u.email||"").toLowerCase();
+    if(ADMIN.includes(email))role="admin";
+    else if(TEST.includes(email))role="tester";
+    else{
+      $("loginError").textContent="此 Gmail 尚未獲得系統授權。";
+      await signOut(auth);
+      leaveToLogin();
+      return;
+    }
+
+    user=u;
+    guestMode=false;
+    enter(email,role==="admin"?"管理員｜正式資料":"測試人員｜獨立測試資料",role==="admin"?"正式環境":"Gmail 測試");
+    await loadPage("dashboard");
+  });
+
+  document.querySelectorAll(".nav").forEach(b=>{
+    b.onclick=()=>loadPage(b.dataset.page);
+  });
+
+  async function loadPage(p){
+    page=p;
+    editing=null;
+    search="";
+    vendorFilter="";
+    paymentFilter="全部";
+
+    document.querySelectorAll(".nav").forEach(b=>{
+      b.classList.toggle("active",b.dataset.page===p);
+    });
+
+    try{
+      if(p==="dashboard"){
+        await dashboard();
+      }else if(p==="profitReport"){
+        await profitReport();
+      }else{
+        records=await read(p);
+        renderModule(p);
+      }
+    }catch(e){
+      $("pageContent").innerHTML=`<div class="panel">讀取失敗：${safe(e.message)}</div>`;
+    }
+  }
+
+  function backButton(){
+    return `<button class="back-dashboard no-print" id="backDashboard">← 返回營運總覽</button>`;
+  }
+  function bindBack(){
+    const b=$("backDashboard");
+    if(b)b.onclick=()=>loadPage("dashboard");
+  }
+
+  /* 營運總覽 */
+  async function dashboard(){
+    const data=await allData();
+    const w=data.work;
+    const e=data.expenses;
+    const a=data.advances;
+    const l=data.landlord;
+    const g=data.goals;
+    const m=dashboardMonth;
+
+    // 計算單筆支出的實際費用（水費預設50%負擔額，電費預設40%負擔額，其餘100%全額）
+    const expenseEffectiveAmount = r => {
+      const amt = Number(r.amount || 0);
+      if (r.category === "水費") return amt * 0.5;
+      if (r.category === "電費") return amt * 0.4;
+      return amt;
+    };
+
+    const mw=w.filter(r=>isMonth(r,m));
+    const me=e.filter(r=>isMonth(r,m));
+    const ma=a.filter(r=>isMonth(r,m));
+    const ml=l.filter(r=>isMonth(r,m));
+
+    const rev=sum(mw);
+    const cost=sum(me, expenseEffectiveAmount);
+    const unpaidRows=mw.filter(r=>["未收","月結"].includes(r.paymentStatus));
+    const unpaid=sum(unpaidRows);
+    const adv=sum(ma.filter(r=>r.status==="待收回"));
+    const monthGoal=g.find(r=>String(r.month||"").slice(0,7)===m)||{};
+    const target=Number(monthGoal.target||0);
+    const workdays=Number(monthGoal.workdays||0);
+
+    const currentMonthCars = mw.filter(r => String(r.plate||"").trim());
+    const currentMonthAvgPrice = currentMonthCars.length > 0 ? (rev / currentMonthCars.length) : 3000;
+    const targetMonthlyCars = target > 0 && currentMonthAvgPrice > 0 ? Math.ceil(target / currentMonthAvgPrice) : 0;
+    const averageDailyCars = workdays > 0 && targetMonthlyCars > 0 ? (targetMonthlyCars / workdays) : 0;
+    const averageDailyRevenue = workdays > 0 ? (target / workdays) : 0;
+
+    const paymentMethodTotals = { 現金: 0, 匯款: 0, 月結: 0, 抵扣: 0, 其他: 0 };
+    mw.forEach(r => {
+      const method = r.paymentMethod || "其他";
+      paymentMethodTotals[method] = (paymentMethodTotals[method] || 0) + amount(r);
+    });
+
+    const vendors={};
+    unpaidRows.forEach(r=>{
+      const name=r.vendorName||"未指定廠商";
+      if(!vendors[name])vendors[name]={count:0,total:0};
+      vendors[name].count++;
+      vendors[name].total+=amount(r);
+    });
+
+    const vendorHTML=Object.entries(vendors)
+      .sort((a,b)=>b[1].total-a[1].total)
+      .map(([name,v])=>`
+        <button class="vendor-row" data-vendor="${safe(name)}">
+          <div>
+            <div class="vendor-name">${safe(name)}</div>
+            <div class="vendor-detail">${v.count} 筆未收／月結</div>
+          </div>
+          <div class="vendor-amount">${money(v.total)}</div>
+        </button>
+      `).join("");
+
+    const months=[];
+    for(let i=5;i>=0;i--){
+      const d=new Date(Number(m.slice(0,4)),Number(m.slice(5,7))-1-i,1);
+      months.push(d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"));
+    }
+
+    const revData=months.map(x=>sum(w.filter(r=>isMonth(r,x))));
+    const costData=months.map(x=>sum(e.filter(r=>isMonth(r,x)&&(r.paid===true||r.paid==="已完成付款")), expenseEffectiveAmount));
+
+    const itemTotals={};
+    mw.forEach(r=>{
+      (r.items||[]).forEach(item=>{
+        const name=item.name==="other_custom"||item.name==="其他施工"?(item.customName||"其他施工"):item.name;
+        itemTotals[name]=(itemTotals[name]||0)+Number(item.price||0);
+      });
+    });
+
+    const landlordIncoming=sum(ml.filter(r=>r.direction==="AS-奧迪應付 AS COATING"),r=>landlordEffectiveAmount(r));
+    const landlordOutgoing=sum(ml.filter(r=>r.direction==="AS COATING 應付 AS-奧迪"),r=>landlordEffectiveAmount(r));
+
+    $("pageContent").innerHTML=`
+      <div class="dashboard-heading">
+        <div>
+          <h1 class="page-title">營運總覽</h1>
+          <div class="page-desc" style="margin:5px 0 0">AS COATING｜每月營運分析</div>
+        </div>
+        <div class="month-picker">
+          <label for="dashboardMonth">查看月份</label>
+          <input type="month" id="dashboardMonth" value="${safe(m)}">
+        </div>
+      </div>
+
+      <div class="metrics">
+        <div class="metric green" data-go="work">
+          <div class="metric-label">本月營收　↗</div>
+          <div class="metric-value">${money(rev)}</div>
+          <div class="metric-note">依工作紀錄統計</div>
+        </div>
+        <div class="metric orange" data-go="expenses">
+          <div class="metric-label">本月支出　↗</div>
+          <div class="metric-value">${money(cost)}</div>
+          <div class="metric-note">包含所有已付及未付支出</div>
+        </div>
+        <div class="metric blue" data-go="profitReport">
+          <div class="metric-label">預估淨利　↗</div>
+          <div class="metric-value">${money(rev-cost)}</div>
+          <div class="metric-note">點選查看營收與支出報表</div>
+        </div>
+        <div class="metric red" data-go="work" data-unpaid="1">
+          <div class="metric-label">本月未收帳　↗</div>
+          <div class="metric-value">${money(unpaid)}</div>
+          <div class="metric-note">${unpaidRows.length} 筆未收及月結</div>
+        </div>
+        <div class="metric purple" data-go="advances">
+          <div class="metric-label">待收回代墊　↗</div>
+          <div class="metric-value">${money(adv)}</div>
+          <div class="metric-note">不列入營運支出</div>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>營收／支出趨勢</h3>
+            <span class="note">近六個月</span>
+          </div>
+          <div class="chart-box"><canvas id="revenueChart"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>本月施工項目營收分布</h3></div>
+          <div class="chart-box"><canvas id="itemChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3>未收帳廠商統計</h3>
+          <span class="note">${unpaidRows.length} 筆｜合計 ${money(unpaid)}</span>
+        </div>
+        <div class="vendor-list">
+          ${vendorHTML||`<div class="vendor-empty">這個月份目前沒有未收帳或月結款項。</div>`}
+        </div>
+        <p class="note">點選廠商即可進入工作紀錄，查看該廠商的請款資料。</p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3>本月工作紀錄對帳（依付款方式統計）</h3>
+          <span class="note">當月總金額對帳用（無視是否已收到）</span>
+        </div>
+        <div class="summary-grid">
+          <div class="summary-card">現金總額<b class="green-text">${money(paymentMethodTotals["現金"])}</b></div>
+          <div class="summary-card">匯款總額<b class="blue-text">${money(paymentMethodTotals["匯款"])}</b></div>
+          <div class="summary-card">月結總額<b class="orange-text">${money(paymentMethodTotals["月結"])}</b></div>
+          <div class="summary-card">抵扣／其他<b class="purple-text">${money(paymentMethodTotals["抵扣"] + paymentMethodTotals["其他"])}</b></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>本月目標進度</h3></div>
+        <div class="goal-progress-grid">
+          <div class="goal-progress-item">
+            <div class="goal-progress-label">本月營收目標</div>
+            <div class="goal-progress-value">${money(target)}</div>
+          </div>
+          <div class="goal-progress-item">
+            <div class="goal-progress-label">本月應完成台數</div>
+            <div class="goal-progress-value">${targetMonthlyCars > 0 ? targetMonthlyCars + " 台" : "—"}</div>
+          </div>
+          <div class="goal-progress-item">
+            <div class="goal-progress-label">平均每日應做台數</div>
+            <div class="goal-progress-value">${workdays > 0 && targetMonthlyCars > 0 ? averageDailyCars.toFixed(1) + " 台" : "—"}</div>
+          </div>
+          <div class="goal-progress-item">
+            <div class="goal-progress-label">本月上班天數</div>
+            <div class="goal-progress-value">${workdays > 0 ? workdays + " 天" : "尚未設定"}</div>
+          </div>
+          <div class="goal-progress-item">
+            <div class="goal-progress-label">本月累計完成</div>
+            <div class="goal-progress-value green-text">${money(rev)}</div>
+          </div>
+          <div class="goal-progress-item">
+            <div class="goal-progress-label">平均每日營收目標</div>
+            <div class="goal-progress-value">${workdays > 0 ? money(averageDailyRevenue) : "—"}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3>AS-奧迪本月往來</h3>
+          <button class="secondary" id="goLandlord">查看 AS-奧迪結算</button>
+        </div>
+        <div class="summary-grid">
+          <div class="summary-card">AS-奧迪應付 AS COATING<b class="green-text">${money(landlordIncoming)}</b></div>
+          <div class="summary-card">AS COATING 應付 AS-奧迪<b class="orange-text">${money(landlordOutgoing)}</b></div>
+          <div class="summary-card">往來差額<b>${money(landlordIncoming-landlordOutgoing)}</b></div>
+        </div>
+      </div>
+
+      ${guest()?`
+        <div class="panel">
+          <h3>免登入測試資料</h3>
+          <p class="note">資料只存在目前瀏覽器 localStorage，不會寫入 Firebase。</p>
+          <button class="danger" id="clearGuest">清除全部本機測試資料</button>
+        </div>
+      `:""}
+    `;
+
+    $("dashboardMonth").onchange=e=>{
+      dashboardMonth=e.target.value||m;
+      dashboard();
+    };
+
+    $("goLandlord").onclick=()=>loadPage("landlord");
+
+    document.querySelectorAll("[data-go]").forEach(el=>{
+      el.onclick=async()=>{
+        const destination=el.dataset.go;
+        await loadPage(destination);
+        if(el.dataset.unpaid==="1"){
+          paymentFilter="未收及月結";
+          renderModule("work");
+          const pf=$("paymentFilter");
+          if(pf)pf.value="未收及月結";
+        }
+      };
+    });
+
+    document.querySelectorAll("[data-vendor]").forEach(el=>{
+      el.onclick=async()=>{
+        const name=el.dataset.vendor;
+        await loadPage("work");
+        vendorFilter=name;
+        renderModule("work");
+        if($("vendorSearch"))$("vendorSearch").value=name;
+      };
+    });
+
+    if(guest()){
+      $("clearGuest").onclick=async()=>{
+        if(!confirm("確定清除目前瀏覽器的全部測試資料？此操作無法復原。"))return;
+        try{
+          const keys=[];
+          for(let i=0;i<localStorage.length;i++){
+            const key=localStorage.key(i);
+            if(key && key.startsWith("AS_COATING_GUEST_"))keys.push(key);
+          }
+          keys.forEach(key=>localStorage.removeItem(key));
+          records=[];editing=null;search="";vendorFilter="";paymentFilter="全部";
+          await dashboard();
+          toast("本機測試資料已全部清除");
+        }catch(err){toast("清除失敗："+err.message);}
+      };
+    }
+
+    if(window.Chart){
+      if(revenueChart)revenueChart.destroy();
+      if(itemChart)itemChart.destroy();
+
+      revenueChart=new Chart($("revenueChart"),{
+        type:"bar",
+        data:{
+          labels:months,
+          datasets:[
+            {label:"營收",data:revData,backgroundColor:"#78a58a",borderRadius:6},
+            {label:"支出",data:costData,backgroundColor:"#d9a16e",borderRadius:6}
+          ]
+        },
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{position:"bottom"}},
+          scales:{y:{beginAtZero:true,ticks:{callback:v=>"$"+Number(v).toLocaleString()}}}
+        }
+      });
+
+      const hasItems=Object.keys(itemTotals).length>0;
+      itemChart=new Chart($("itemChart"),{
+        type:"doughnut",
+        data:{
+          labels:hasItems?Object.keys(itemTotals):["尚無資料"],
+          datasets:[{
+            data:hasItems?Object.values(itemTotals):[1],
+            backgroundColor:[
+              "#78a58a","#d9a16e","#7797bd",
+              "#bd858b","#a18bb8","#b5aa80",
+              "#88a6a0","#c58a55","#8e9fbd"
+            ],
+            borderWidth:2,borderColor:"#fff"
+          }]
+        },
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{position:"bottom"}}
+        }
+      });
+    }
+  }
+
+  /* 預估淨利報表 */
+  async function profitReport(){
+    const data=await allData();
+    const month=dashboardMonth;
+
+    const workRows=data.work.filter(r=>isMonth(r,month)).sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
+    const expenseRows=data.expenses.filter(r=>isMonth(r,month)&&(r.paid===true||r.paid==="已完成付款")).sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
+
+    const revenueTotal=sum(workRows);
+    const expenseTotal=sum(expenseRows);
+    const netTotal=revenueTotal-expenseTotal;
+
+    const workHTML=workRows.map(r=>{
+      const items=(r.items||[]).map(x=>{
+        const name=x.name==="other_custom"||x.name==="其他施工"?(x.customName||"其他施工"):x.name;
+        return safe(name);
+      }).join("、")||"—";
+
+      return `
+        <tr>
+          <td>${safe(r.date||"")}</td>
+          <td>${safe(r.plate||"")}</td>
+          <td>${safe(r.owner||"")}</td>
+          <td>${safe(r.vendorName||"—")}</td>
+          <td>${items}</td>
+          <td><b>${money(r.amount)}</b></td>
+          <td>${safe(r.paymentStatus||"")}</td>
+        </tr>
+      `;
+    }).join("");
+
+    const expenseHTML=expenseRows.map(r=>`
+      <tr>
+        <td>${safe(r.date||"")}</td>
+        <td>${safe(r.category||"")}</td>
+        <td>${safe(r.item||"")}</td>
+        <td>${safe(r.payee||"—")}</td>
+        <td>${safe(r.paymentMethod||"")}</td>
+        <td><b>${money(r.amount)}</b></td>
+      </tr>
+    `).join("");
+
+    $("pageContent").innerHTML=`
+      <div class="page-top">
+        <div>
+          <h1 class="page-title">預估淨利報表</h1>
+          <div class="page-desc">查看每月工作營收、已付款支出及預估淨利明細。</div>
+        </div>
+        ${backButton()}
+      </div>
+
+      <div class="panel no-print">
+        <div class="month-picker">
+          <label for="profitMonth">報表月份</label>
+          <input type="month" id="profitMonth" value="${safe(month)}">
+        </div>
+      </div>
+
+      <div class="profit-summary">
+        <div class="profit-card revenue">
+          <div class="label">本月營收總額</div>
+          <div class="value">${money(revenueTotal)}</div>
+          <div class="note">${workRows.length} 筆工作紀錄</div>
+        </div>
+        <div class="profit-card expense">
+          <div class="label">已付款支出總額</div>
+          <div class="value">${money(expenseTotal)}</div>
+          <div class="note">${expenseRows.length} 筆已付款支出</div>
+        </div>
+        <div class="profit-card net">
+          <div class="label">預估淨利</div>
+          <div class="value">${money(netTotal)}</div>
+          <div class="note">營收總額－已付款支出總額</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="report-section-title">
+          <h3>一、工作營收明細</h3>
+          <span class="note">${monthName(month)}｜${workRows.length} 筆</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>施工日期</th><th>車牌</th><th>車主</th><th>廠商／請款對象</th>
+                <th>施工項目</th><th>營收金額</th><th>收款狀態</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${workHTML||`<tr><td colspan="7" class="report-empty">本月份沒有工作營收紀錄。</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+        <div class="report-total">營收合計：<strong class="green-text">${money(revenueTotal)}</strong></div>
+      </div>
+
+      <div class="panel">
+        <div class="report-section-title">
+          <h3>二、已付款支出明細</h3>
+          <span class="note">${monthName(month)}｜${expenseRows.length} 筆</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>支出日期</th><th>支出類別</th><th>支出項目</th>
+                <th>付款對象</th><th>付款方式</th><th>支出金額</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${expenseHTML||`<tr><td colspan="6" class="report-empty">本月份沒有已付款支出紀錄。</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+        <div class="report-total">已付款支出合計：<strong class="orange-text">${money(expenseTotal)}</strong></div>
+      </div>
+
+      <div class="actions no-print">
+        <button class="secondary" id="printProfitReport">列印報表／另存 PDF</button>
+        <button class="back-dashboard" id="backDashboardBottom">返回營運總覽</button>
+      </div>
+    `;
+
+    bindBack();
+    $("profitMonth").onchange=e=>{
+      dashboardMonth=e.target.value||month;
+      profitReport();
+    };
+    $("backDashboardBottom").onclick=()=>loadPage("dashboard");
+    $("printProfitReport").onclick=()=>window.print();
+  }
+
+  /* 工作紀錄表單 */
+  function workFormHTML(r={}){
+    const selected=Array.isArray(r.items)?r.items:[];
+    const other=selected.find(x=>x.name==="other_custom"||x.name==="其他施工");
+
+    const itemRows=WORK_ITEMS.map(name=>{
+      const found=selected.find(x=>x.name===name);
+      return `
+        <div class="item-row">
+          <input type="checkbox"
+            class="work-item-check"
+            data-item="${safe(name)}"
+            ${found?"checked":""}>
+          <label>${safe(name)}</label>
+          <input type="number"
+            min="0" step="1"
+            class="work-item-price"
+            data-price="${safe(name)}"
+            placeholder="金額"
+            value="${found?Number(found.price||0):""}">
+        </div>
+      `;
+    }).join("");
+
+    return `
+      <div class="grid">
+        <div class="field">
+          <label>施工日期 *</label>
+          <input name="date" type="date" required value="${safe(r.date||today())}">
+        </div>
+        <div class="field">
+          <label>車牌 *</label>
+          <input name="plate" required value="${safe(r.plate||"")}">
+        </div>
+        <div class="field">
+          <label>車主</label>
+          <input name="owner" value="${safe(r.owner||"")}">
+        </div>
+        <div class="field">
+          <label>車款</label>
+          <input name="car" value="${safe(r.car||"")}">
+        </div>
+        <div class="field">
+          <label>車色</label>
+          <input name="carColor" value="${safe(r.carColor||"")}" placeholder="例如：白、黑、銀">
+        </div>
+        <div class="field">
+          <label>廠商／請款對象</label>
+          <input name="vendorName" list="vendorOptions"
+            value="${safe(r.vendorName||"")}"
+            placeholder="可自行輸入，也可選擇；無廠商可留空">
+          <datalist id="vendorOptions">
+            ${["凱爾","為班","57","AS","松哥","杜哥","阿奇","阿奇同事"].map(v=>`<option value="${v}"></option>`).join("")}
+          </datalist>
+        </div>
+        <div class="field full">
+          <label>施工項目（可複選，各項目可輸入金額）</label>
+          <div class="item-list">${itemRows}</div>
+        </div>
+        <div class="field full ${other?"":"hidden"}" id="otherWorkField">
+          <label>其他施工項目名稱 *</label>
+          <input name="otherWorkName" id="otherWorkName"
+            value="${safe(other?.customName||"")}"
+            placeholder="請輸入實際施工項目">
+        </div>
+        <div class="field full">
+          <div class="total-box">
+            <span>施工項目合計</span>
+            <strong id="workItemTotal">${money(sum(selected,x=>x.price))}</strong>
+          </div>
+        </div>
+        <div class="field">
+          <label>本筆總金額 *</label>
+          <input name="amount" type="number" min="0" step="1"
+            required value="${safe(r.amount??"")}">
+        </div>
+        <div class="field">
+          <label>收款狀態</label>
+          <select name="paymentStatus">
+            ${["已收","未收","月結","其他"].map(x=>
+              `<option ${r.paymentStatus===x?"selected":""}>${x}</option>`
+            ).join("")}
+          </select>
+        </div>
+        <div class="field">
+          <label>收款方式</label>
+          <select name="paymentMethod">
+            ${["現金","匯款","月結","抵扣"].map(x=>
+              `<option ${r.paymentMethod===x?"selected":""}>${x}</option>`
+            ).join("")}
+          </select>
+        </div>
+        <div class="field">
+          <label>匯款帳號後五碼（匯款時填寫）</label>
+          <input name="transferLast5" maxlength="5"
+            value="${safe(r.transferLast5||"")}"
+            placeholder="五碼">
+        </div>
+        <div class="field full">
+          <label>備註</label>
+          <textarea name="note">${safe(r.note||"")}</textarea>
+        </div>
+      </div>
+    `;
+  }
+
+  function bindWorkItems(){
+    const checks=[...document.querySelectorAll(".work-item-check")];
+    const prices=[...document.querySelectorAll(".work-item-price")];
+
+    function update(){
+      let total=0;
+      let otherChecked=false;
+
+      checks.forEach(c=>{
+        const p=document.querySelector(`[data-price="${CSS.escape(c.dataset.item)}"]`);
+        if(c.checked)total+=Number(p?.value||0);
+        if(c.dataset.item==="其他施工")otherChecked=c.checked;
+      });
+
+      const otherField=$("otherWorkField");
+      if(otherField)otherField.classList.toggle("hidden",!otherChecked);
+
+      const totalBox=$("workItemTotal");
+      if(totalBox)totalBox.textContent=money(total);
+
+      const amountInput=$("recordForm")?.elements.amount;
+      if(amountInput)amountInput.value=total;
+    }
+
+    checks.forEach(c=>c.onchange=update);
+    prices.forEach(p=>{
+      p.oninput=()=>{
+        const check=checks.find(c=>c.dataset.item===p.dataset.price);
+        if(check && p.value.trim()!=="")check.checked=true;
+        update();
+      };
+    });
+    update();
+  }
+
+  function getWorkData(form){
+    const selected=[];
+    document.querySelectorAll(".work-item-check:checked").forEach(c=>{
+      const p=document.querySelector(`[data-price="${CSS.escape(c.dataset.item)}"]`);
+      const item={
+        name:c.dataset.item==="其他施工"?"other_custom":c.dataset.item,
+        price:Number(p?.value||0)
+      };
+
+      if(c.dataset.item==="其他施工"){
+        item.customName=form.elements.otherWorkName.value.trim();
+      }
+      selected.push(item);
+    });
+
+    const f=form.elements;
+    return {
+      date:f.date.value,
+      plate:f.plate.value.trim(),
+      owner:f.owner.value.trim(),
+      car:f.car.value.trim(),
+      carColor:f.carColor.value.trim(),
+      vendorName:f.vendorName.value.trim(),
+      items:selected,
+      amount:Number(f.amount.value||0),
+      paymentStatus:f.paymentStatus.value,
+      paymentMethod:f.paymentMethod.value,
+      transferLast5:f.transferLast5.value.trim(),
+      note:f.note.value.trim()
+    };
+  }
+
+  function fieldHTML(f,v=""){
+    let control="";
+    if(f.type==="select"){
+      control=`
+        <select name="${f.key}">
+          <option value="">請選擇</option>
+          ${f.options.map(x=>
+            `<option value="${safe(x)}" ${v===x?"selected":""}>${safe(x==="other_custom"?"其他":x)}</option>`
+          ).join("")}
+        </select>
+      `;
+    }else if(f.key==="item" && page==="expenses"){
+      control=`<input name="item" value="${safe(v)}" placeholder="材料、耗材、其他可自行填寫；其餘類別自動帶入">`;
+    }else if(f.type==="datalist"){
+      const listId = f.key + "Datalist";
+      control=`
+        <input name="${f.key}" list="${listId}" value="${safe(v)}" placeholder="可自行輸入或選擇 AS (空白則不填)">
+        <datalist id="${listId}">
+          ${f.options.map(opt=>`<option value="${safe(opt)}">`).join("")}
+        </datalist>
+      `;
+    }else if(f.type==="textarea"){
+      control=`<textarea name="${f.key}">${safe(v)}</textarea>`;
+    }else if(f.type==="checkbox"){
+      control=`
+        <label class="check">
+          <input type="checkbox" name="${f.key}" ${v===true?"checked":""}>
+          已完成付款
+        </label>
+      `;
+    }else{
+      control=`
+        <input name="${f.key}" type="${f.type||"text"}"
+          value="${safe(v || (f.type==="month"&&page==="goals"?new Date().toISOString().slice(0,7):""))}"
+          ${f.required?"required":""}
+          ${f.type==="number"?'min="0" step="1"':""}>
+      `;
+    }
+
+    if(f.type==="checkbox")return `<div class="field">${control}</div>`;
+    return `
+      <div class="field ${f.full?"full":""}">
+        <label>${f.label}${f.required?" *":""}</label>
+        ${control}
+      </div>
+    `;
+  }
+
+  function searchWords(text,query){
+    const words=String(query||"").toLowerCase().trim().split(/\s+/).filter(Boolean);
+    const haystack=String(text||"").toLowerCase();
+    return words.every(word=>haystack.includes(word));
+  }
+
+  function searchableText(r){
+    const itemText=(r.items||[]).map(x=>
+      x.name==="other_custom"||x.name==="其他施工"?(x.customName||"其他施工"):x.name
+    ).join(" ");
+
+    return [
+      r.date,r.month,r.plate,r.owner,r.car,r.vendorName,
+      r.paymentStatus,r.paymentMethod,r.transferLast5,r.note,
+      r.category,r.item,r.payee,r.person,r.status,
+      r.direction,r.type,itemText
+    ].filter(Boolean).join(" ");
+  }
+
+  function moduleList(m){
+    let list=[...records];
+    list=list.filter(r=>searchWords(searchableText(r),search));
+    if(m==="work"){
+      if(vendorFilter){
+        list=list.filter(r=>(r.vendorName||"")===vendorFilter);
+      }
+      if(paymentFilter==="未收及月結"){
+        list=list.filter(r=>["未收","月結"].includes(r.paymentStatus));
+      }else if(paymentFilter==="已收"){
+        list=list.filter(r=>r.paymentStatus==="已收");
+      }else if(paymentFilter==="未收"){
+        list=list.filter(r=>r.paymentStatus==="未收");
+      }else if(paymentFilter==="月結"){
+        list=list.filter(r=>r.paymentStatus==="月結");
+      }
+    }
+    return list.sort((a,b)=>String(b.date||b.month||"").localeCompare(String(a.date||a.month||"")));
+  }
+
+  function workRows(list){
+    return list.map(r=>{
+      const itemText=(r.items||[]).map(x=>{
+        const name=x.name==="other_custom"||x.name==="其他施工"?(x.customName||"其他施工"):x.name;
+        return `${safe(name)} ${money(x.price)}`;
+      }).join("<br>")||"—";
+
+      return `
+        <tr data-row-id="${safe(r.id)}">
+          <td>${safe(r.date)}</td>
+          <td>${safe(r.plate)}</td>
+          <td>${safe(r.owner||"—")}<span class="small-muted" style="display:block">車款: ${safe(r.car||"—")}</span></td>
+          <td>${safe(r.vendorName||"—")}</td>
+          <td>${itemText}</td>
+          <td><b>${money(r.amount)}</b></td>
+          <td>
+            <select class="mini inline-work-input" data-id="${safe(r.id)}" data-field="paymentStatus">
+              ${["已收","未收","月結","其他"].map(x=>
+                `<option ${r.paymentStatus===x?"selected":""}>${x}</option>`
+              ).join("")}
+            </select>
+          </td>
+          <td>
+            <select class="mini inline-work-input payment-method-select" data-id="${safe(r.id)}" data-field="paymentMethod">
+              ${["現金","匯款","月結","抵扣"].map(x=>
+                `<option ${r.paymentMethod===x?"selected":""}>${x}</option>`
+              ).join("")}
+            </select>
+            <input type="text" class="mini inline-work-input transfer-last5-input ${r.paymentMethod==="匯款"?"":"hidden"}" data-id="${safe(r.id)}" data-field="transferLast5" maxlength="5" placeholder="後5碼" value="${safe(r.transferLast5||"")}" style="margin-top:4px;width:70px;">
+          </td>
+          <td>
+            <button class="primary mini inline-save-btn" data-module="work" data-id="${safe(r.id)}">儲存</button>
+            <button class="secondary mini" data-edit="${safe(r.id)}">詳情</button>
+            <button class="danger mini" data-delete="${safe(r.id)}">刪除</button>
+          </td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  function genericRows(m,list,fields){
+    if(m==="advances"){
+      return list.map(r=>`
+        <tr data-row-id="${safe(r.id)}">
+          <td><input type="date" class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="date" value="${safe(r.date)}"></td>
+          <td><input type="text" class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="item" value="${safe(r.item)}"></td>
+          <td><input type="number" class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="amount" value="${safe(r.amount)}"></td>
+          <td>
+            <input type="text" class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="person" list="personDatalist" value="${safe(r.person||"")}" placeholder="AS或空白">
+            <datalist id="personDatalist"><option value="AS"></option></datalist>
+          </td>
+          <td>
+            <select class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="status">
+              ${["待收回","已收回","已抵扣"].map(x=>`<option ${r.status===x?"selected":""}>${x}</option>`)}
+            </select>
+          </td>
+          <td><textarea class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="note" rows="1">${safe(r.note||"")}</textarea></td>
+          <td>
+            <button class="primary mini inline-save-btn" data-module="advances" data-id="${safe(r.id)}">儲存</button>
+            <button class="secondary mini" data-edit="${safe(r.id)}">詳情</button>
+            <button class="danger mini" data-delete="${safe(r.id)}">刪除</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+    if(m==="expenses"){
+      return list.map(r=>{
+        const amt = Number(r.amount || 0);
+        let displayAmtText = money(amt);
+        if (r.category === "水費") {
+          displayAmtText = `${money(amt)} <span class="small-muted" style="display:block">(負擔: ${money(amt * 0.5)})</span>`;
+        } else if (r.category === "電費") {
+          displayAmtText = `${money(amt)} <span class="small-muted" style="display:block">(負擔: ${money(amt * 0.4)})</span>`;
+        }
+
+        return `
+        <tr data-row-id="${safe(r.id)}">
+          <td><input type="date" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="date" value="${safe(r.date)}"></td>
+          <td>
+            <select class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="category">
+              ${["材料","耗材","薪資","水費","電費","房屋租金","停車位費用","大樓管理費","勞健保費","其他"].map(x=>
+                `<option ${r.category===x?"selected":""}>${x}</option>`
+              ).join("")}
+            </select>
+          </td>
+          <td><input type="text" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="item" value="${safe(r.item||"")}"></td>
+          <td><input type="number" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="amount" value="${safe(r.amount)}"><span class="small-muted" style="display:block">${displayAmtText}</span></td>
+          <td>
+            <input type="text" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="payee" list="payeeDatalist" value="${safe(r.payee||"")}" placeholder="AS或空白">
+            <datalist id="payeeDatalist"><option value="AS"></option></datalist>
+          </td>
+          <td>
+            <select class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="paymentMethod">
+              ${["現金","匯款","信用卡","其他"].map(x=>`<option ${r.paymentMethod===x?"selected":""}>${x}</option>`)}
+            </select>
+          </td>
+          <td>
+            <select class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="paid">
+              ${["未付款","已完成付款"].map(x=>`<option ${(r.paid===x||(r.paid===true&&x==="已完成付款")||(r.paid===false&&x==="未付款"))?"selected":""}>${x}</option>`)}
+            </select>
+          </td>
+          <td><input type="date" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="paidDate" value="${safe(r.paidDate||"")}"></td>
+          <td><textarea class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="note" rows="1">${safe(r.note||"")}</textarea></td>
+          <td>
+            <button class="primary mini inline-save-btn" data-module="expenses" data-id="${safe(r.id)}">儲存</button>
+            <button class="secondary mini" data-edit="${safe(r.id)}">詳情</button>
+            <button class="danger mini" data-delete="${safe(r.id)}">刪除</button>
+          </td>
+        </tr>
+      `;}).join("");
+    }
+    if(m==="landlord"){
+      return list.map(r=>`
+        <tr data-row-id="${safe(r.id)}">
+          <td><input type="date" class="mini inline-land-input" data-id="${safe(r.id)}" data-field="date" value="${safe(r.date)}"></td>
+          <td>
+            <select class="mini inline-land-input" data-id="${safe(r.id)}" data-field="direction">
+              ${["AS-奧迪應付 AS COATING","AS COATING 應付 AS-奧迪"].map(x=>`<option ${r.direction===x?"selected":""}>${x}</option>`)}
+            </select>
+          </td>
+          <td>
+            <select class="mini inline-land-input" data-id="${safe(r.id)}" data-field="category">
+              ${["AS-奧迪委託施工","房屋租金","場地抵扣租金","停車位費用","大樓管理費","勞健保費","水費","電費","其他"].map(x=>`<option ${r.category===x?"selected":""}>${x}</option>`)}
+            </select>
+          </td>
+          <td><input type="text" class="mini inline-land-input" data-id="${safe(r.id)}" data-field="item" value="${safe(r.item)}"></td>
+          <td><input type="number" class="mini inline-land-input" data-id="${safe(r.id)}" data-field="amount" value="${safe(r.amount)}"></td>
+          <td><input type="number" class="mini inline-land-input" data-id="${safe(r.id)}" data-field="share" value="${safe(r.share??"")}" placeholder="${r.category==="水費"?"50":r.category==="電費"?"40":"100"}"></td>
+          <td><b class="green-text">${money(landlordEffectiveAmount(r))}</b></td>
+          <td><textarea class="mini inline-land-input" data-id="${safe(r.id)}" data-field="note" rows="1">${safe(r.note||"")}</textarea></td>
+          <td>
+            <button class="primary mini inline-save-btn" data-module="landlord" data-id="${safe(r.id)}">儲存</button>
+            <button class="secondary mini" data-edit="${safe(r.id)}">詳情</button>
+            <button class="danger mini" data-delete="${safe(r.id)}">刪除</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+    if(m==="goals"){
+      return list.map(r=>`
+        <tr data-row-id="${safe(r.id)}">
+          <td><input type="month" class="mini inline-goal-input" data-id="${safe(r.id)}" data-field="month" value="${safe(r.month)}"></td>
+          <td><input type="number" class="mini inline-goal-input" data-id="${safe(r.id)}" data-field="target" value="${safe(r.target)}"></td>
+          <td><input type="number" class="mini inline-goal-input" data-id="${safe(r.id)}" data-field="workdays" value="${safe(r.workdays)}"></td>
+          <td>
+            <button class="primary mini inline-save-btn" data-module="goals" data-id="${safe(r.id)}">儲存</button>
+            <button class="secondary mini" data-edit="${safe(r.id)}">詳情</button>
+            <button class="danger mini" data-delete="${safe(r.id)}">刪除</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+    return list.map(r=>`
+      <tr>
+        ${fields.map(f=>{
+          let v=r[f.key]??"";
+          if(f.key==="amount"||f.key==="target")v=money(v);
+          return `<td>${safe(v)}</td>`;
+        }).join("")}
+        <td>
+          <button class="secondary mini" data-edit="${safe(r.id)}">修改</button>
+          <button class="danger mini" data-delete="${safe(r.id)}">刪除</button>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  function renderModule(m){
+    const cfg=MODULES[m];
+    const list=moduleList(m);
+    const isWork=m==="work";
+    const fields=isWork?[]:FIELDS[m];
+    const cols=isWork?[]:fields.filter(f=>f.type!=="textarea"&&f.type!=="checkbox").slice(0,7);
+    const current=editing?records.find(r=>r.id===editing)||{}:{};
+
+    let formContent=isWork?workFormHTML(current):fields.map(f=>fieldHTML(f,current[f.key])).join("");
+    const tableRows=isWork?workRows(list):genericRows(m,list,cols);
+
+    const workFilters=isWork?`
+      <select id="paymentFilter">
+        ${["全部","未收及月結","已收","未收","月結"].map(x=>`<option ${paymentFilter===x?"selected":""}>${x}</option>`)}
+      </select>
+      <input id="vendorSearch" placeholder="廠商名稱篩選" value="${safe(vendorFilter)}">
+    `:"";
+
+    $("pageContent").innerHTML=`
+      <div class="page-top">
+        <div>
+          <h1 class="page-title">${cfg.title}</h1>
+          <div class="page-desc">${cfg.desc}</div>
+        </div>
+        ${backButton()}
+      </div>
+
+      ${m==="landlord"?landlordSummaryHTML():""}
+
+      <div class="panel" id="editPanel">
+        <h3>${editing?"修改":"新增"}${cfg.title}</h3>
+        <form id="recordForm">
+          <div class="grid">${formContent}</div>
+          <div class="actions">
+            <button class="primary" type="submit">儲存資料</button>
+            <button type="button" class="secondary" id="cancelEdit">取消</button>
+          </div>
+        </form>
+      </div>
+
+      ${isWork?invoiceToolsHTML():""}
+
+      <div class="panel">
+        <div class="toolbar">
+          <input id="searchInput" placeholder="${isWork?"可輸入車牌、車主、車款、廠商、施工項目等多個關鍵字":"輸入多個關鍵字交叉搜尋"}" value="${safe(search)}">
+          ${workFilters}
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                ${isWork?`
+                  <th>日期</th><th>車牌</th><th>車主/車款</th><th>廠商／請款對象</th><th>施工項目及金額</th>
+                  <th>總額</th><th>收款狀態</th><th>收款方式</th><th>操作</th>
+                `:m==="advances"?`
+                  <th>代墊日期</th><th>代墊項目</th><th>代墊金額</th><th>代墊對象</th><th>處理狀態</th><th>備註</th><th>操作</th>
+                `:m==="expenses"?`
+                  <th>支出日期</th><th>支出類別</th><th>支出項目</th><th>支出金額</th><th>廠商／對象</th><th>付款方式</th><th>付款狀態</th><th>付款日期</th><th>備註</th><th>操作</th>
+                `:m==="landlord"?`
+                  <th>日期</th><th>款項方向</th><th>項目類別</th><th>項目說明</th><th>原始金額</th><th>負擔比例(%)</th><th>負擔金額</th><th>備註</th><th>操作</th>
+                `:m==="goals"?`
+                  <th>目標月份</th><th>月營收目標</th><th>上班天數</th><th>操作</th>
+                `:`
+                  ${cols.map(f=>`<th>${f.label}</th>`).join("")}
+                  <th>操作</th>
+                `}
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows||`<tr><td colspan="${isWork?9:cols.length+1}" class="empty">目前沒有符合條件的資料</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+        <div class="note">目前顯示 ${list.length} 筆資料</div>
+      </div>
+    `;
+
+    bindBack();
+
+    $("recordForm").onsubmit=save;
+    $("cancelEdit").onclick=()=>{
+      editing=null;
+      renderModule(m);
+    };
+
+    $("searchInput").oninput=e=>{
+      search=e.target.value;
+      const pos=e.target.selectionStart;
+      renderModule(m);
+      $("searchInput").focus();
+      $("searchInput").setSelectionRange(pos,pos);
+    };
+
+    document.querySelectorAll(".inline-save-btn").forEach(btn=>{
+      btn.onclick=async(e)=>{
+        const id=e.target.dataset.id;
+        const mod=e.target.dataset.module;
+        const row=e.target.closest("tr");
+        if(!row)return;
+
+        let updatedData={};
+        row.querySelectorAll("input, select, textarea").forEach(inp=>{
+          const f=inp.dataset.field;
+          if(!f)return;
+          let val=inp.value;
+          if(f==="amount" || f==="target" || f==="workdays" || f==="share") val=val===""?"":Number(val||0);
+          updatedData[f]=val;
+        });
+
+        if(mod==="advances" && isASPerson(updatedData.person)) updatedData.person="AS-奧迪";
+        if(mod==="expenses" && isASPerson(updatedData.payee)) updatedData.payee="AS-奧迪";
+        if(mod==="work" && isASPerson(updatedData.vendorName)) updatedData.vendorName="AS-奧迪";
+
+        try{
+          let targetRecord=records.find(r=>r.id===id)||{};
+          let merged={...targetRecord,...updatedData};
+
+          if(guest()){
+            let list=guestRead(mod).map(r=>r.id===id?merged:r);
+            guestWrite(mod,list);
+          }else{
+            await updateDoc(doc(col(mod),id),{...merged,updatedAt:serverTimestamp()});
+          }
+
+          if(mod==="advances") await syncAdvanceToLandlord(merged,id);
+          if(mod==="expenses") {
+            const linked=await syncExpenseToLandlord(merged,id);
+            if(linked && !merged.landlordLinkId){
+              if(guest())guestWrite("expenses",guestRead("expenses").map(r=>r.id===id?{...r,landlordLinkId:linked}:r));
+              else await updateDoc(doc(col("expenses"),id),{landlordLinkId:linked});
+            }
+          }
+          if(mod==="work" && isASPerson(merged.vendorName)){
+            const linked=await syncWorkToLandlord(merged,id);
+            if(linked && !merged.landlordLinkId){
+              if(guest())guestWrite("work",guestRead("work").map(r=>r.id===id?{...r,landlordLinkId:linked}:r));
+              else await updateDoc(doc(col("work"),id),{landlordLinkId:linked});
+            }
+          }
+          if(mod==="landlord"){
+            await syncLandlordToExpenseOrAdvance(merged, id);
+          }
+
+          records=await read(mod);
+          await allData();
+          renderModule(mod);
+          toast("資料已成功儲存並同步更新！");
+        }catch(err){
+          toast("儲存失敗："+err.message);
+        }
+      };
+    });
+
+    if(isWork){
+      bindWorkItems();
+      const pf=$("paymentFilter");
+      if(pf)pf.onchange=e=>{
+        paymentFilter=e.target.value;
+        renderModule(m);
+      };
+      const vs=$("vendorSearch");
+      if(vs)vs.oninput=e=>{
+        vendorFilter=e.target.value.trim();
+        const pos=e.target.selectionStart;
+        renderModule(m);
+        $("vendorSearch").focus();
+        $("vendorSearch").setSelectionRange(pos,pos);
+      };
+      bindInvoiceTools();
+    }
+
+    if(m==="landlord")bindLandlord();
+
+    if(m==="expenses"){
+      const form=$("recordForm");
+      const category=form?.elements.category;
+      const item=form?.elements.item;
+      const paidSelect=form?.elements.paid;
+      const paidDateInput=form?.elements.paidDate;
+
+      const manual=["材料","耗材","其他","other_custom"];
+      const applyExpenseItem=()=>{
+        if(!category||!item)return;
+        if(manual.includes(category.value)){
+          item.readOnly=false;
+          if(["薪資","水費","電費","房屋租金","停車位費用","大樓管理費","勞健保費"].includes(item.value))item.value="";
+        }else if(category.value){
+          item.value=category.value;
+          item.readOnly=true;
+        }else{
+          item.value="";item.readOnly=false;
+        }
+      };
+
+      const handlePaidStatusChange=()=>{
+        if(!paidSelect||!paidDateInput)return;
+        const isPaid = paidSelect.value === "已完成付款" || paidSelect.value === true;
+        if(isPaid){
+          paidDateInput.disabled = false;
+          if(!paidDateInput.value) paidDateInput.value = today();
+        }else{
+          paidDateInput.value = "";
+          paidDateInput.disabled = true;
+        }
+      };
+
+      category?.addEventListener("change",applyExpenseItem);
+      paidSelect?.addEventListener("change",handlePaidStatusChange);
+      applyExpenseItem();
+      handlePaidStatusChange();
+    }
+
+    document.querySelectorAll("[data-edit]").forEach(b=>{
+      b.onclick=()=>edit(m,b.dataset.edit);
+    });
+
+    document.querySelectorAll("[data-delete]").forEach(b=>{
+      b.onclick=()=>remove(m,b.dataset.delete);
+    });
+  }
+
+  function invoiceToolsHTML(){
+    const vendors=[...new Set(records.map(r=>r.vendorName).filter(Boolean))].sort();
+    return `
+      <div class="panel no-print">
+        <h3>廠商請款單／對帳表</h3>
+        <div class="grid">
+          <div class="field">
+            <label>請款月份</label>
+            <input type="month" id="invoiceMonth" value="${safe(invoiceMonth)}">
+          </div>
+          <div class="field">
+            <label>廠商名稱</label>
+            <select id="invoiceVendor">
+              <option value="">全部廠商</option>
+              ${vendors.map(v=>`<option value="${safe(v)}" ${vendorFilter===v?"selected":""}>${safe(v)}</option>`).join("")}
+            </select>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="primary" id="makeInvoice">產生請款單</button>
+          <button class="secondary" id="printInvoice">列印／另存 PDF</button>
+        </div>
+      </div>
+      <div id="invoiceResult"></div>
+    `;
+  }
+
+  function bindInvoiceTools(){
+    const im=$("invoiceMonth");
+    if(im)im.value=invoiceMonth;
+    if(im)im.onchange=e=>{
+      invoiceMonth=e.target.value||dashboardMonth;
+      makeInvoice();
+    };
+    const iv=$("invoiceVendor");
+    if(iv)iv.onchange=e=>{
+      vendorFilter=e.target.value;
+      makeInvoice();
+    };
+    const mi=$("makeInvoice");
+    if(mi)mi.onclick=makeInvoice;
+    const pi=$("printInvoice");
+    if(pi)pi.onclick=()=>{
+      makeInvoice();
+      setTimeout(()=>window.print(),150);
+    };
+  }
+
+  function makeInvoice(){
+    if(!$("invoiceResult"))return;
+    const month=$("invoiceMonth")?.value||dashboardMonth;
+    const vendor=$("invoiceVendor")?.value;
+    invoiceMonth=month;
+
+    const list=records.filter(r=>isMonth(r,month)&&(!vendor||(r.vendorName||"")===vendor)).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+    const paid=list.filter(r=>r.paymentStatus==="已收");
+    const unpaid=list.filter(r=>["未收","月結"].includes(r.paymentStatus));
+    const total=sum(list);
+    const paidTotal=sum(paid);
+    const unpaidTotal=sum(unpaid);
+
+    $("invoiceResult").innerHTML=`
+      <div class="panel" id="invoicePrint">
+        <div class="print-title"><h2>AS COATING｜施工請款明細</h2></div>
+        <h2>AS COATING｜施工請款明細</h2>
+        <div class="note">請款月份：${safe(monthName(month))}　請款對象：${safe(vendor||"全部廠商")}</div>
+        <div class="summary-grid" style="margin:16px 0">
+          <div class="summary-card">本月請款總額<b class="invoice-total">${money(total)}</b></div>
+          <div class="summary-card">已收金額<b class="green-text">${money(paidTotal)}</b></div>
+          <div class="summary-card">未收／月結<b class="red-text">${money(unpaidTotal)}</b></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>日期</th><th>車牌</th><th>車主</th><th>車款</th><th>施工項目</th><th>金額</th><th>收款狀態</th></tr>
+            </thead>
+            <tbody>
+              ${list.map(r=>`
+                <tr>
+                  <td>${safe(r.date)}</td><td>${safe(r.plate)}</td><td>${safe(r.owner)}</td><td>${safe(r.car)}</td>
+                  <td>${(r.items||[]).map(x=>{
+                    const n=x.name==="other_custom"||x.name==="其他施工"?(x.customName||"其他施工"):x.name;
+                    return safe(n)+" "+money(x.price);
+                  }).join("<br>")}</td>
+                  <td>${money(r.amount)}</td><td>${safe(r.paymentStatus)}</td>
+                </tr>
+              `).join("")||`<tr><td colspan="7" class="empty">這個月份沒有請款資料</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+        <div style="text-align:right;margin-top:20px;font-size:17px;font-weight:bold">
+          請款總額：<span class="invoice-total">${money(total)}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function landlordEffectiveAmount(r){
+    const amountValue = Number(r.amount || 0);
+    const category = r.category;
+    let share = r.share;
+    if(category === "水費" || category === "電費"){
+      if(share === undefined || share === null || share === "" || isNaN(Number(share))){
+        share = category === "水費" ? 50 : 40;
+      }
+      return amountValue * (Number(share) / 100);
+    }
+    return amountValue;
+  }
+
+  function landlordSummaryHTML(){
+    const month=dashboardMonth;
+    const list=records.filter(r=>isMonth(r,month));
+    const incoming=sum(list.filter(r=>r.direction==="AS-奧迪應付 AS COATING"),landlordEffectiveAmount);
+    const outgoing=sum(list.filter(r=>r.direction==="AS COATING 應付 AS-奧迪"),landlordEffectiveAmount);
+    const net=incoming-outgoing;
+
+    return `
+      <div class="panel">
+        <div class="panel-head">
+          <h3>月底結算概況</h3>
+          <label class="note">
+            結算月份
+            <input type="month" id="landlordMonth" value="${safe(month)}" style="width:150px">
+          </label>
+        </div>
+        <div class="summary-grid">
+          <div class="summary-card">AS-奧迪應付 AS COATING<b class="green-text">${money(incoming)}</b></div>
+          <div class="summary-card">AS COATING 應付 AS-奧迪<b class="orange-text">${money(outgoing)}</b></div>
+          <div class="summary-card">往來差額<b class="${net>=0?"green-text":"red-text"}">${money(net)}</b></div>
+        </div>
+        <div class="total-box" style="margin-top:14px">
+          <span>本月結算結果</span>
+          <strong class="${net>=0?"green-text":"red-text"}">
+            ${net>=0?"AS-奧迪應付 AS COATING":"AS COATING 應付 AS-奧迪"} ${money(Math.abs(net))}
+          </strong>
+        </div>
+        <div class="actions" style="margin-top:14px">
+          <button class="primary" id="generateStatementBtn">產生對帳結算詳細明細（分三區塊）</button>
+        </div>
+      </div>
+      <div id="statementResultContainer"></div>
+    `;
+  }
+
+  function bindLandlord(){
+    const lm=$("landlordMonth");
+    if(lm)lm.onchange=e=>{
+      dashboardMonth=e.target.value||dashboardMonth;
+      renderModule("landlord");
+    };
+    const genBtn=$("generateStatementBtn");
+    if(genBtn)genBtn.onclick=generateLandlordStatement;
+
+    const form=$("recordForm");
+    if(!form)return;
+    const category=form.elements.category;
+    const share=form.elements.share;
+    const item=form.elements.item;
+
+    if(category){
+      category.onchange=()=>{
+        if(category.value==="水費" && share) share.value=50;
+        else if(category.value==="電費" && share) share.value=40;
+        else if(share && !share.dataset.userChanged) share.value="";
+
+        if(item && (!item.dataset || !item.dataset.customInput)){
+          item.value = category.value || "";
+        }
+      };
+    }
+
+    if(share){
+      share.oninput=()=>share.dataset.userChanged="1";
+    }
+
+    if(item){
+      item.oninput=()=>{
+        if(!item.dataset) item.dataset = {};
+        item.dataset.customInput = item.value.trim() !== "" ? "1" : "";
+      };
+    }
+  }
+
+  async function upsertLinkedLandlord(linkId,data){
+    let list=await read("landlord");
+    const old=list.find(x=>x.id===linkId||x.linkedRecordId===data.linkedRecordId);
+    const payload={...data,sourceType:data.sourceType||"expense",linkedRecordId:data.linkedRecordId||linkId};
+    if(guest()){
+      if(old)list=list.map(x=>x.id===linkId?{...x,...payload}:x);
+      else list.push({id:linkId,...payload});
+      guestWrite("landlord",list);
+      return;
+    }
+    if(old)await updateDoc(doc(col("landlord"),old.id),{...payload,updatedAt:serverTimestamp()});
+    else await addDoc(col("landlord"),{...payload,createdAt:serverTimestamp()});
+  }
+
+  async function syncExpenseToLandlord(expenseData,expenseId){
+    const payee=expenseData.payee;
+    const category=expenseData.category;
+    const linkId=expenseData.landlordLinkId||("expense_link_"+expenseId);
+    if(category!=="水費"&&category!=="電費"&&category!=="房屋租金"&&category!=="停車位費用"&&category!=="大樓管理費"&&category!=="勞健保費"&&!isASPerson(payee))return null;
+    const share=category==="水費"?50:category==="電費"?40:100;
+    const payload={
+      date:expenseData.date,direction:"AS COATING 應付 AS-奧迪",category:category,
+      item:expenseData.item||category,amount:Number(expenseData.amount||0),share,
+      note:"由支出記帳自動同步｜"+(expenseData.note||""),sourceType:"expense",linkedRecordId:expenseId
+    };
+    await upsertLinkedLandlord(linkId,payload);
+    return linkId;
+  }
+
+  async function syncWorkToLandlord(workData,workId){
+    const isAS=isASPerson(workData.vendorName);
+    const linkId=workData.landlordLinkId||("work_link_"+workId);
+    if(!isAS)return null;
+    const itemText=(workData.items||[]).map(x=>x.name==="other_custom"||x.name==="其他施工"?(x.customName||x.name):x.name).join("、");
+    await upsertLinkedLandlord(linkId,{
+      date:workData.date,direction:"AS-奧迪應付 AS COATING",category:"AS-奧迪委託施工",
+      item:(workData.plate?workData.plate+"｜":"")+(itemText||"施工服務"),
+      amount:Number(workData.amount||0),share:100,
+      note:"由工作紀錄自動同步｜"+(workData.note||""),sourceType:"work",linkedRecordId:workId
+    });
+    return linkId;
+  }
+
+  async function syncAdvanceToLandlord(advanceData,advanceId){
+    const isAS=isASPerson(advanceData.person);
+    if(!isAS)return;
+    const linkId=advanceData.landlordLinkId||("advance_link_"+advanceId);
+    await upsertLinkedLandlord(linkId,{
+      date:advanceData.date,direction:"AS-奧迪應付 AS COATING",category:"其他",
+      item:"【代墊請款】"+(advanceData.item||""),amount:Number(advanceData.amount||0),share:100,
+      note:"幫奧迪代墊付款，向奧迪請款｜"+(advanceData.note||""),sourceType:"advance",linkedRecordId:advanceId
+    });
+  }
+
+  async function upsertLinkedTarget(colName, linkId, payload){
+    let list = guest() ? guestRead(colName) : await read(colName);
+    let old = list.find(x => x.id === linkId || x.landlordLinkId === linkId || x.linkedRecordId === linkId);
+    if(guest()){
+      if(old) list = list.map(x => (x.id === old.id || x.landlordLinkId === linkId || x.linkedRecordId === linkId ? {...x, ...payload} : x));
+      else list.push({id: linkId, landlordLinkId: linkId, linkedRecordId: linkId, ...payload});
+      guestWrite(colName, list);
+    } else {
+      if(old) await updateDoc(doc(col(colName), old.id), {...payload, updatedAt: serverTimestamp()});
+      else await addDoc(col(colName), {landlordLinkId: linkId, linkedRecordId: linkId, ...payload, createdAt: serverTimestamp()});
+    }
+  }
+
+  async function syncLandlordToExpenseOrAdvance(landlordData, landlordId){
+    const itemText = landlordData.item || landlordData.category || "";
+    const isAdvance = landlordData.direction === "AS-奧迪應付 AS COATING" || itemText.includes("代墊") || (landlordData.note || "").includes("代墊");
+    const linkId = landlordData.linkedRecordId || ("target_link_" + landlordId);
+
+    // 帶入支出記帳 / 代墊管理一律使用原始金額
+    const finalAmount = Number(landlordData.amount || 0);
+
+    if(isAdvance){
+      const payload = {
+        date: landlordData.date,
+        item: itemText,
+        amount: finalAmount,
+        person: "AS-奧迪",
+        status: "待收回",
+        note: "由 AS-奧迪往來結算同步｜" + (landlordData.note || ""),
+        landlordLinkId: landlordId,
+        linkedRecordId: landlordId
+      };
+      await upsertLinkedTarget("advances", linkId, payload);
+      // 清除舊的支出記帳紀錄（若款項方向改變）
+      await cleanUnmatchedTarget("expenses", landlordId);
+    } else {
+      const payload = {
+        date: landlordData.date,
+        category: landlordData.category || "其他",
+        item: itemText,
+        amount: finalAmount,
+        payee: "AS-奧迪",
+        paymentMethod: "現金",
+        paid: "未付款",
+        note: "由 AS-奧迪往來結算同步｜" + (landlordData.note || ""),
+        landlordLinkId: landlordId,
+        linkedRecordId: landlordId
+      };
+      await upsertLinkedTarget("expenses", linkId, payload);
+      // 清除舊的代墊管理紀錄（若款項方向改變）
+      await cleanUnmatchedTarget("advances", landlordId);
+    }
+  }
+
+  async function cleanUnmatchedTarget(colName, landlordId){
+    let list = guest() ? guestRead(colName) : await read(colName);
+    const old = list.filter(x => x.landlordLinkId === landlordId || x.linkedRecordId === landlordId || x.id === ("target_link_" + landlordId));
+    if(old.length > 0){
+      if(guest()){
+        list = list.filter(x => !(x.landlordLinkId === landlordId || x.linkedRecordId === landlordId || x.id === ("target_link_" + landlordId)));
+        guestWrite(colName, list);
+      } else {
+        await Promise.all(old.map(r => deleteDoc(doc(col(colName), r.id))));
+      }
+    }
+  }
+
+  function generateLandlordStatement(){
+    const month = dashboardMonth;
+    const list = records.filter(r => isMonth(r, month));
+
+    // 一、應付款項：所有 AS COATING 應付 AS-奧迪 之項目（不論來源）
+    const deductionItems = list.filter(r => 
+      r.direction === "AS COATING 應付 AS-奧迪"
+    );
+
+    // 二、AS 工作紀錄項目：所有工作紀錄同步或款項方向為 AS-奧迪應付且屬委託施工之項目
+    const workItems = list.filter(r => 
+      r.sourceType === "work" || 
+      r.category === "AS-奧迪委託施工" || 
+      (r.id && String(r.id).startsWith("work_link_"))
+    );
+
+    // 三、代墊項目：所有代墊同步，或是款項方向為 AS-奧迪應付且非屬委託施工之項目（如水電分攤、其他直接新增至往來結算之請款）
+    const advanceItems = list.filter(r => 
+      r.direction === "AS-奧迪應付 AS COATING" && 
+      !workItems.includes(r)
+    );
+
+    const calcSubtotal = (arr) => sum(arr, r => landlordEffectiveAmount(r));
+
+    const renderTable = (title, items, isWork=false) => `
+      <div style="margin-bottom:20px;">
+        <h4 style="margin:0 0 8px; color:#526b5c; border-bottom:2px solid #e8e6df; padding-bottom:4px;">${title}（共 ${items.length} 筆）</h4>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>日期</th>
+                ${isWork?`<th>車款</th><th>車色</th><th>車牌</th><th>施工項目</th>`:`<th>項目類別</th><th>項目說明</th><th>原始金額</th><th>分擔比例</th><th>應負擔金額</th>`}
+                <th>金額/備註</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${items.map(r => {
+                if(isWork){
+                  let car = r.car || "—";
+                  let carColor = r.carColor || "—";
+                  let plate = r.plate || "—";
+                  let itemStr = r.item || "";
+
+                  // 若此筆資料有連結至原始工作紀錄，直接讀取原始工作紀錄的完整欄位明細
+                  if(r.linkedRecordId) {
+                    const workRec = (guest() ? guestRead("work") : records).find(x => x.id === r.linkedRecordId);
+                    if(workRec) {
+                      if(workRec.car) car = workRec.car;
+                      if(workRec.carColor) carColor = workRec.carColor;
+                      if(workRec.plate) plate = workRec.plate;
+                      if(Array.isArray(workRec.items) && workRec.items.length > 0) {
+                        itemStr = workRec.items.map(x => (x.name === "other_custom" || x.name === "其他施工") ? (x.customName || "其他施工") : x.name).join("、");
+                      }
+                    }
+                  }
+
+                  return `
+                    <tr>
+                      <td>${safe(r.date)}</td>
+                      <td>${safe(car)}</td>
+                      <td>${safe(carColor)}</td>
+                      <td>${safe(plate)}</td>
+                      <td>${safe(itemStr || r.item || "施工服務")}</td>
+                      <td><b>${money(r.amount)}</b></td>
+                    </tr>
+                  `;
+                }else{
+                  const rawAmt = Number(r.amount || 0);
+                  let share = r.share || (r.category==="水費"?50:r.category==="電費"?40:100);
+                  return `
+                    <tr>
+                      <td>${safe(r.date)}</td>
+                      <td>${safe(r.category)}</td>
+                      <td>${safe(r.item)}</td>
+                      <td>${money(rawAmt)}</td>
+                      <td>${r.category==="水費"||r.category==="電費"?share+"%":"—"}</td>
+                      <td><b>${money(landlordEffectiveAmount(r))}</b></td>
+                    </tr>
+                  `;
+                }
+              }).join("") || `<tr><td colspan="7" class="empty">此區塊無相關紀錄</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+        <div style="text-align:right; margin-top:6px; font-weight:bold;">
+          ${title}小計：<span class="green-text">${money(calcSubtotal(items))}</span>
+        </div>
+      </div>
+    `;
+
+    const container = $("statementResultContainer");
+    if(!container) return;
+
+    container.innerHTML = `
+      <div class="panel" style="background:#fff; border:2px dashed #71877b;">
+        <div class="panel-head">
+          <h3>AS COATING ＆ 奧迪 — ${safe(monthName(month))} 往來對帳結算明細</h3>
+          <button class="secondary mini no-print" id="printStatementBtn">列印／截圖對帳單</button>
+        </div>
+        ${renderTable("一、應付款項", deductionItems, false)}
+        ${renderTable("二、AS 工作紀錄項目", workItems, true)}
+        ${renderTable("三、代墊項目", advanceItems, false)}
+      </div>
+    `;
+
+    const pb = $("printStatementBtn");
+    if(pb)pb.onclick = () => window.print();
+    container.scrollIntoView({behavior:"smooth", block:"start"});
+  }
+
+  async function save(e){
+    e.preventDefault();
+    const m=page;
+    const form=e.target;
+    let data={};
+
+    if(m==="work"){
+      bindWorkItems();
+      data = getWorkData(form);
+      if(data.amount<0){
+        toast("施工總金額不可為負數。");
+        return;
+      }
+      if(data.paymentMethod==="匯款"&&!/^\d{5}$/.test(data.transferLast5)){
+        toast("匯款方式請填寫五碼帳號末五碼。");
+        return;
+      }
+    }else{
+      FIELDS[m].forEach(f=>{
+        const el=form.elements[f.key];
+        if(!el) return;
+        data[f.key]= f.type==="checkbox"?el.checked: f.type==="number"?Number(el.value||0):(el.value ? el.value.trim() : "");
+      });
+    }
+
+    if((m==="expenses"&&isASPerson(data.payee)) || (m==="advances"&&isASPerson(data.person))){
+      if(m==="expenses")data.payee="AS-奧迪";
+      if(m==="advances")data.person="AS-奧迪";
+    }
+
+    if(m==="landlord"){
+      if(data.category==="水費"&&(data.share===0||data.share===""))data.share=50;
+      if(data.category==="電費"&&(data.share===0||data.share===""))data.share=40;
+    }
+
+    try{
+      let savedId=editing;
+      if(guest()){
+        let list=guestRead(m);
+        if(editing){
+          list=list.map(r=>r.id===editing?{...r,...data}:r);
+        }else{
+          savedId="guest_"+Date.now();
+          list.push({id:savedId,...data});
+        }
+        guestWrite(m,list);
+      }else{
+        const c=col(m);
+        if(editing){
+          await updateDoc(doc(c,editing),{...data,updatedAt:serverTimestamp()});
+        }else{
+          const ref=await addDoc(c,{...data,createdAt:serverTimestamp()});
+          savedId=ref.id;
+        }
+      }
+
+      if(m==="work" && isASPerson(data.vendorName)){
+        const linked=await syncWorkToLandlord(data,savedId);
+        if(linked){
+          if(guest())guestWrite("work",guestRead("work").map(r=>r.id===savedId?{...r,landlordLinkId:linked}:r));
+          else await updateDoc(doc(col("work"),savedId),{landlordLinkId:linked});
+        }
+      }
+      if(m==="expenses"){
+        const linked=await syncExpenseToLandlord(data,savedId);
+        if(linked){
+          if(guest())guestWrite("expenses",guestRead("expenses").map(r=>r.id===savedId?{...r,landlordLinkId:linked}:r));
+          else await updateDoc(doc(col("expenses"),savedId),{landlordLinkId:linked});
+        }
+      }
+      if(m==="advances"){
+        await syncAdvanceToLandlord(data,savedId);
+      }
+      if(m==="landlord"){
+        await syncLandlordToExpenseOrAdvance(data, savedId);
+      }
+
+      editing=null;
+      records=await read(m);
+      await allData();
+      renderModule(m);
+      toast("資料儲存成功！");
+    }catch(e){
+      toast("儲存失敗："+e.message);
+    }
+  }
+
+  async function edit(m,id){
+    editing=id;
+    renderModule(m);
+  }
+
+  async function remove(m,id){
+    if(!confirm("確定刪除這筆資料？刪除後無法復原。"))return;
+    try{
+      const current=(guest()?guestRead(m):await read(m)).find(r=>r.id===id);
+      if(guest())guestWrite(m,guestRead(m).filter(r=>r.id!==id));
+      else await deleteDoc(doc(col(m),id));
+
+      const linkedId=current?.landlordLinkId ||
+        ((m==="work" && isASPerson(current?.vendorName))?"work_link_"+id:null) ||
+        (m==="expenses"?"expense_link_"+id:null) ||
+        (m==="advances" && isASPerson(current?.person)?"advance_link_"+id:null);
+
+      if(linkedId){
+        if(guest())guestWrite("landlord",guestRead("landlord").filter(r=>r.id!==linkedId && r.linkedRecordId!==id));
+        else{
+          const linked=(await read("landlord")).filter(r=>r.id===linkedId||r.linkedRecordId===id);
+          await Promise.all(linked.map(r=>deleteDoc(doc(col("landlord"),r.id))));
+        }
+      }
+      records=await read(m);
+      if(m==="expenses" || m==="work" || m==="advances"){
+        await allData();
+      }
+      renderModule(m);
+      toast("資料已刪除（連動項目已同步移除）");
+    }catch(e){toast("刪除失敗："+e.message);}
+  }
+}
+
+bootASCoatingSystem().catch(error=>{
+  console.error("系統啟動失敗：", error);
+  const errBox = document.getElementById("loginError");
+  if(errBox) errBox.textContent = "系統載入失敗：" + error.message;
+});
+</script>
+</body>
+</html>
