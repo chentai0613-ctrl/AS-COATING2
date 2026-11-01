@@ -503,6 +503,9 @@ async function bootASCoatingSystem(){
     "引擎室清潔","皮革保養","塑料件保養","打蠟","其他施工"
   ];
 
+  /* 常用廠商預設名單 */
+  const DEFAULT_VENDORS = ["凱爾","為班","57","AS","松哥","杜哥","阿奇","阿奇同事"];
+
   /* 模組欄位 */
   const MODULES={
     work:{
@@ -531,10 +534,10 @@ async function bootASCoatingSystem(){
     expenses:[
       {key:"date",label:"支出日期",type:"date",required:true},
       {key:"category",label:"支出類別",type:"select",
-        options:["材料","耗材","薪資","水費","電費","房屋租金","停車位費用","大樓管理費","勞健保費","other_custom","其他"]},
+        options:["材料","耗材","薪資","水費","電費","房屋租金","停車位費用","大樓管理費","勞健保費","other_custom","other","其他"]},
       {key:"item",label:"支出項目"},
       {key:"amount",label:"支出金額",type:"number",required:true},
-      {key:"payee",label:"廠商／請款對象",type:"select",options:["","AS","凱爾","為班","57","松哥","杜哥","阿奇","阿奇同事"]},
+      {key:"payee",label:"廠商／請款對象",type:"vendor_dual"},
       {key:"paymentMethod",label:"付款方式",type:"select",
         options:["現金","匯款","信用卡","其他"]},
       {key:"paid",label:"付款狀態",type:"select",options:["未付款","已完成付款"]},
@@ -545,7 +548,7 @@ async function bootASCoatingSystem(){
       {key:"date",label:"代墊日期",type:"date",required:true},
       {key:"item",label:"代墊項目（如：幫奧迪代付之材料/費用）",required:true},
       {key:"amount",label:"代墊金額",type:"number",required:true},
-      {key:"person",label:"代墊對象",type:"select",options:["","AS","凱爾","為班","57","松哥","杜哥","阿奇","阿奇同事"]},
+      {key:"person",label:"代墊對象",type:"vendor_dual"},
       {key:"status",label:"處理狀態",type:"select",
         options:["待收回","已收回","已抵扣"]},
       {key:"note",label:"備註（請款說明/匯款備註）",type:"textarea",full:true}
@@ -1259,7 +1262,9 @@ async function bootASCoatingSystem(){
       `;
     }).join("");
 
-    const vendorOptions=["","凱爾","為班","57","AS","松哥","杜哥","阿奇","阿奇同事"];
+    const val = r.vendorName || "";
+    const isPreset = DEFAULT_VENDORS.includes(val);
+    const selectVal = val === "" ? "" : (isPreset ? val : "CUSTOM_INPUT");
 
     return `
       <div class="grid">
@@ -1284,10 +1289,16 @@ async function bootASCoatingSystem(){
           <input name="carColor" value="${safe(r.carColor||"")}" placeholder="例如：白、黑、銀">
         </div>
         <div class="field">
-          <label>廠商／請款對象</label>
-          <select name="vendorName">
-            ${vendorOptions.map(v=>`<option value="${safe(v)}" ${r.vendorName===v?"selected":""}>${v===""?"（無廠商／自由空白）":safe(v)}</option>`).join("")}
+          <label>廠商／請款對象（可選或自訂）</label>
+          <select id="workVendorSelect" style="margin-bottom:6px">
+            <option value="">（無廠商／自由空白）</option>
+            ${DEFAULT_VENDORS.map(v=>`<option value="${safe(v)}" ${selectVal===v?"selected":""}>${safe(v)}</option>`).join("")}
+            <option value="CUSTOM_INPUT" ${selectVal==="CUSTOM_INPUT"?"selected":""}>✏️ 其他／手動自由輸入...</option>
           </select>
+          <input name="vendorName" id="workVendorInput"
+            value="${safe(val)}"
+            placeholder="請輸入廠商名稱"
+            class="${selectVal==="CUSTOM_INPUT"?"":"hidden"}">
         </div>
         <div class="field full">
           <label>施工項目（可複選，各項目可輸入金額）</label>
@@ -1373,6 +1384,20 @@ async function bootASCoatingSystem(){
       };
     });
     update();
+
+    const vSelect = $("workVendorSelect");
+    const vInput = $("workVendorInput");
+    if(vSelect && vInput){
+      vSelect.onchange = () => {
+        if(vSelect.value === "CUSTOM_INPUT"){
+          vInput.classList.remove("hidden");
+          vInput.focus();
+        } else {
+          vInput.classList.add("hidden");
+          vInput.value = vSelect.value;
+        }
+      };
+    }
   }
 
   function getWorkData(form){
@@ -1418,6 +1443,17 @@ async function bootASCoatingSystem(){
           ).join("")}
         </select>
       `;
+    }else if(f.type==="vendor_dual"){
+      const isPreset = DEFAULT_VENDORS.includes(v);
+      const selectVal = v === "" ? "" : (isPreset ? v : "CUSTOM_INPUT");
+      control=`
+        <select class="vendor-dual-select" data-target="${f.key}" style="margin-bottom:6px">
+          <option value="">（無／自由空白）</option>
+          ${DEFAULT_VENDORS.map(opt=>`<option value="${safe(opt)}" ${selectVal===opt?"selected":""}>${safe(opt)}</option>`).join("")}
+          <option value="CUSTOM_INPUT" ${selectVal==="CUSTOM_INPUT"?"selected":""}>✏️ 其他／手動自由輸入...</option>
+        </select>
+        <input name="${f.key}" id="${f.key}Input" value="${safe(v)}" placeholder="自由輸入名稱" class="${selectVal==="CUSTOM_INPUT"?"":"hidden"}">
+      `;
     }else if(f.key==="item" && page==="expenses"){
       control=`<input name="item" value="${safe(v)}" placeholder="材料、耗材、其他可自行填寫；其餘類別自動帶入">`;
     }else if(f.type==="textarea"){
@@ -1445,6 +1481,23 @@ async function bootASCoatingSystem(){
         ${control}
       </div>
     `;
+  }
+
+  function bindVendorDuals(){
+    document.querySelectorAll(".vendor-dual-select").forEach(sel=>{
+      const targetId = sel.dataset.target + "Input";
+      const inp = $(targetId);
+      if(!inp)return;
+      sel.onchange = () => {
+        if(sel.value === "CUSTOM_INPUT"){
+          inp.classList.remove("hidden");
+          inp.focus();
+        } else {
+          inp.classList.add("hidden");
+          inp.value = sel.value;
+        }
+      };
+    });
   }
 
   function searchWords(text,query){
@@ -1534,9 +1587,7 @@ async function bootASCoatingSystem(){
           <td><input type="text" class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="item" value="${safe(r.item)}"></td>
           <td><input type="number" class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="amount" value="${safe(r.amount)}"></td>
           <td>
-            <select class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="person">
-              ${["","AS","凱爾","為班","57","松哥","杜哥","阿奇","阿奇同事"].map(p=>`<option ${r.person===p?"selected":""}>${p===""?"（空白）":p}</option>`)}
-            </select>
+            <input type="text" class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="person" value="${safe(r.person||"")}" placeholder="代墊對象">
           </td>
           <td>
             <select class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="status">
@@ -1575,9 +1626,7 @@ async function bootASCoatingSystem(){
           <td><input type="text" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="item" value="${safe(r.item||"")}"></td>
           <td><input type="number" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="amount" value="${safe(r.amount)}"><span class="small-muted" style="display:block">${displayAmtText}</span></td>
           <td>
-            <select class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="payee">
-              ${["","AS","凱爾","為班","57","松哥","杜哥","阿奇","阿奇同事"].map(p=>`<option ${r.payee===p?"selected":""}>${p===""?"（空白）":p}</option>`)}
-            </select>
+            <input type="text" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="payee" value="${safe(r.payee||"")}" placeholder="請款對象">
           </td>
           <td>
             <select class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="paymentMethod">
@@ -1825,6 +1874,8 @@ async function bootASCoatingSystem(){
         $("vendorSearch").setSelectionRange(pos,pos);
       };
       bindInvoiceTools();
+    }else{
+      bindVendorDuals();
     }
 
     if(m==="landlord")bindLandlord();
@@ -1836,7 +1887,7 @@ async function bootASCoatingSystem(){
       const paidSelect=form?.elements.paid;
       const paidDateInput=form?.elements.paidDate;
 
-      const manual=["材料","耗材","其他","other_custom"];
+      const manual=["材料","耗材","其他","other_custom","other"];
       const applyExpenseItem=()=>{
         if(!category||!item)return;
         if(manual.includes(category.value)){
@@ -2334,6 +2385,10 @@ async function bootASCoatingSystem(){
         guestWrite(m,list);
       }else{
         const c=col(m);
+        if(editing && !records.some(r=>r.id===editing)){
+          editing = null;
+        }
+
         if(editing){
           await updateDoc(doc(c,editing),{...data,updatedAt:serverTimestamp()});
         }else{
