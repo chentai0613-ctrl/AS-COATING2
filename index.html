@@ -177,6 +177,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 }
 .progress>div{
   height:100%;background:linear-gradient(90deg,#aab9ae,#637d70);
+  transition:width .4s ease-in-out;
 }
 .summary-grid{
   display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;
@@ -196,6 +197,16 @@ button:disabled{opacity:.5;cursor:not-allowed}
 }
 .goal-progress-label{font-size:12px;color:var(--muted);font-weight:700}
 .goal-progress-value{font-size:20px;font-weight:900;margin-top:8px;color:var(--ink)}
+
+/* 激勵標語與目標進度樣式 */
+.motivation-card{
+  background:linear-gradient(135deg, #f3f7f4, #e8f0eb);
+  border:1px solid #d2e0d7;border-radius:13px;padding:16px;
+  margin-bottom:15px;
+}
+.motivation-title{font-size:15px;font-weight:800;color:#436151;margin-bottom:6px}
+.motivation-text{font-size:14px;color:#2f4538;line-height:1.6;font-weight:700}
+
 @media(max-width:900px){
   .goal-progress-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
@@ -207,6 +218,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .red-text{color:#c43f43}
 .green-text{color:#648875}
 .orange-text{color:#c58a55}
+.purple-text{color:#866da4}
+.blue-text{color:#698db5}
 
 /* 預估淨利報表 */
 .profit-summary{
@@ -592,6 +605,36 @@ async function bootASCoatingSystem(){
     return str === "AS" || str === "AS奧迪" || str === "ASCOATING";
   };
 
+  // 取得目標激勵用語與文字
+  function getMotivationMessage(rate, diff) {
+    if (rate >= 100) {
+      return {
+        title: "🏆 超越目標，極致達標！",
+        text: `恭喜完美達成目標！目前營收已超越設定目標 ${money(Math.abs(diff))}，感謝團隊的付出與堅持！`
+      };
+    } else if (rate >= 90) {
+      return {
+        title: "🎉 臨門一腳，勝利在望！",
+        text: `太厲害了！進度已達到 ${rate.toFixed(1)}%，距離目標僅差 ${money(diff)}，準備迎接慶祝時刻！`
+      };
+    } else if (rate >= 60) {
+      return {
+        title: "🔥 保持衝勁，繼續突破！",
+        text: `目標完成度已達 ${rate.toFixed(1)}%，距離達標還差 ${money(diff)}，再接再厲衝破大關！`
+      };
+    } else if (rate >= 30) {
+      return {
+        title: "💪 穩紮穩打，步步高升！",
+        text: `進度已過三分之一（${rate.toFixed(1)}%），繼續保持高標準品質，穩定邁向目標！`
+      };
+    } else {
+      return {
+        title: "🚀 萬事起頭難，全力以赴！",
+        text: `本月進度 ${rate.toFixed(1)}%，尚差 ${money(diff)} 達標。規劃好每日排程，一起開啟亮眼成績！`
+      };
+    }
+  }
+
   const toast=s=>{
     const t=$("toast");
     if(!t)return;
@@ -751,7 +794,6 @@ async function bootASCoatingSystem(){
     const g=data.goals;
     const m=dashboardMonth;
 
-    // 計算單筆支出的實際費用（水費預設50%負擔額，電費預設40%負擔額，其餘100%全額）
     const expenseEffectiveAmount = r => {
       const amt = Number(r.amount || 0);
       if (r.category === "水費") return amt * 0.5;
@@ -778,6 +820,10 @@ async function bootASCoatingSystem(){
     const targetMonthlyCars = target > 0 && currentMonthAvgPrice > 0 ? Math.ceil(target / currentMonthAvgPrice) : 0;
     const averageDailyCars = workdays > 0 && targetMonthlyCars > 0 ? (targetMonthlyCars / workdays) : 0;
     const averageDailyRevenue = workdays > 0 ? (target / workdays) : 0;
+
+    const goalRate = target > 0 ? Math.min((rev / target) * 100, 100) : 0;
+    const goalDiff = target - rev;
+    const motivation = getMotivationMessage(target > 0 ? (rev / target) * 100 : 0, goalDiff);
 
     const paymentMethodTotals = { 現金: 0, 匯款: 0, 月結: 0, 抵扣: 0, 其他: 0 };
     mw.forEach(r => {
@@ -839,27 +885,27 @@ async function bootASCoatingSystem(){
 
       <div class="metrics">
         <div class="metric green" data-go="work">
-          <div class="metric-label">本月營收　↗</div>
+          <div class="metric-label">本月營收 ↗</div>
           <div class="metric-value">${money(rev)}</div>
           <div class="metric-note">依工作紀錄統計</div>
         </div>
         <div class="metric orange" data-go="expenses">
-          <div class="metric-label">本月支出　↗</div>
+          <div class="metric-label">本月支出 ↗</div>
           <div class="metric-value">${money(cost)}</div>
           <div class="metric-note">包含所有已付及未付支出</div>
         </div>
         <div class="metric blue" data-go="profitReport">
-          <div class="metric-label">預估淨利　↗</div>
+          <div class="metric-label">預估淨利 ↗</div>
           <div class="metric-value">${money(rev-cost)}</div>
           <div class="metric-note">點選查看營收與支出報表</div>
         </div>
         <div class="metric red" data-go="work" data-unpaid="1">
-          <div class="metric-label">本月未收帳　↗</div>
+          <div class="metric-label">本月未收帳 ↗</div>
           <div class="metric-value">${money(unpaid)}</div>
           <div class="metric-note">${unpaidRows.length} 筆未收及月結</div>
         </div>
         <div class="metric purple" data-go="advances">
-          <div class="metric-label">待收回代墊　↗</div>
+          <div class="metric-label">待收回代墊 ↗</div>
           <div class="metric-value">${money(adv)}</div>
           <div class="metric-note">不列入營運支出</div>
         </div>
@@ -904,7 +950,20 @@ async function bootASCoatingSystem(){
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h3>本月目標進度</h3></div>
+        <div class="panel-head">
+          <h3>本月目標進度與激勵標語</h3>
+          <span class="note">達成率：${target > 0 ? ((rev / target) * 100).toFixed(1) : 0}%</span>
+        </div>
+
+        <div class="motivation-card">
+          <div class="motivation-title">${motivation.title}</div>
+          <div class="motivation-text">${motivation.text}</div>
+        </div>
+
+        <div class="progress">
+          <div style="width:${goalRate}%;"></div>
+        </div>
+
         <div class="goal-progress-grid">
           <div class="goal-progress-item">
             <div class="goal-progress-label">本月營收目標</div>
@@ -1891,7 +1950,7 @@ async function bootASCoatingSystem(){
       <div class="panel" id="invoicePrint">
         <div class="print-title"><h2>AS COATING｜施工請款明細</h2></div>
         <h2>AS COATING｜施工請款明細</h2>
-        <div class="note">請款月份：${safe(monthName(month))}　請款對象：${safe(vendor||"全部廠商")}</div>
+        <div class="note">請款月份：${safe(monthName(month))} 請款對象：${safe(vendor||"全部廠商")}</div>
         <div class="summary-grid" style="margin:16px 0">
           <div class="summary-card">本月請款總額<b class="invoice-total">${money(total)}</b></div>
           <div class="summary-card">已收金額<b class="green-text">${money(paidTotal)}</b></div>
@@ -2082,7 +2141,6 @@ async function bootASCoatingSystem(){
     const isAdvance = landlordData.direction === "AS-奧迪應付 AS COATING" || itemText.includes("代墊") || (landlordData.note || "").includes("代墊");
     const linkId = landlordData.linkedRecordId || ("target_link_" + landlordId);
 
-    // 帶入支出記帳 / 代墊管理一律使用原始金額
     const finalAmount = Number(landlordData.amount || 0);
 
     if(isAdvance){
@@ -2097,7 +2155,6 @@ async function bootASCoatingSystem(){
         linkedRecordId: landlordId
       };
       await upsertLinkedTarget("advances", linkId, payload);
-      // 清除舊的支出記帳紀錄（若款項方向改變）
       await cleanUnmatchedTarget("expenses", landlordId);
     } else {
       const payload = {
@@ -2113,7 +2170,6 @@ async function bootASCoatingSystem(){
         linkedRecordId: landlordId
       };
       await upsertLinkedTarget("expenses", linkId, payload);
-      // 清除舊的代墊管理紀錄（若款項方向改變）
       await cleanUnmatchedTarget("advances", landlordId);
     }
   }
@@ -2135,19 +2191,16 @@ async function bootASCoatingSystem(){
     const month = dashboardMonth;
     const list = records.filter(r => isMonth(r, month));
 
-    // 一、應付款項：所有 AS COATING 應付 AS-奧迪 之項目（不論來源）
     const deductionItems = list.filter(r => 
       r.direction === "AS COATING 應付 AS-奧迪"
     );
 
-    // 二、AS 工作紀錄項目：所有工作紀錄同步或款項方向為 AS-奧迪應付且屬委託施工之項目
     const workItems = list.filter(r => 
       r.sourceType === "work" || 
       r.category === "AS-奧迪委託施工" || 
       (r.id && String(r.id).startsWith("work_link_"))
     );
 
-    // 三、代墊項目：所有代墊同步，或是款項方向為 AS-奧迪應付且非屬委託施工之項目（如水電分攤、其他直接新增至往來結算之請款）
     const advanceItems = list.filter(r => 
       r.direction === "AS-奧迪應付 AS COATING" && 
       !workItems.includes(r)
@@ -2175,7 +2228,6 @@ async function bootASCoatingSystem(){
                   let plate = r.plate || "—";
                   let itemStr = r.item || "";
 
-                  // 若此筆資料有連結至原始工作紀錄，直接讀取原始工作紀錄的完整欄位明細
                   if(r.linkedRecordId) {
                     const workRec = (guest() ? guestRead("work") : records).find(x => x.id === r.linkedRecordId);
                     if(workRec) {
