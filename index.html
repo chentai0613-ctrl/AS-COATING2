@@ -521,7 +521,10 @@ async function bootASCoatingSystem(){
     "引擎室清潔","皮革保養","塑料件保養","打蠟","其他施工"
   ];
 
-  /* 常用廠商預設名單（指定為 AS 供支出與代墊選取） */
+  /* 工作紀錄專用廠商預設名單 */
+  const WORK_VENDORS = ["凱爾", "為班", "57", "AS", "松哥", "杜哥", "阿奇", "阿奇同事"];
+
+  /* 支出與代墊常用廠商預設名單（指定為 AS） */
   const DEFAULT_VENDORS = ["AS"];
 
   /* 模組欄位 */
@@ -1281,7 +1284,7 @@ async function bootASCoatingSystem(){
     }).join("");
 
     const val = r.vendorName || "";
-    const isPreset = DEFAULT_VENDORS.includes(val);
+    const isPreset = WORK_VENDORS.includes(val);
     const selectVal = val === "" ? "" : (isPreset ? val : "CUSTOM_INPUT");
 
     return `
@@ -1307,10 +1310,10 @@ async function bootASCoatingSystem(){
           <input name="carColor" value="${safe(r.carColor||"")}" placeholder="例如：白、黑、銀">
         </div>
         <div class="field">
-          <label>廠商／請款對象（可選AS或自訂）</label>
+          <label>廠商／請款對象</label>
           <select id="workVendorSelect" style="margin-bottom:6px">
             <option value="">（無廠商／自由空白）</option>
-            ${DEFAULT_VENDORS.map(v=>`<option value="${safe(v)}" ${selectVal===v?"selected":""}>${safe(v)}</option>`).join("")}
+            ${WORK_VENDORS.map(v=>`<option value="${safe(v)}" ${selectVal===v?"selected":""}>${safe(v)}</option>`).join("")}
             <option value="CUSTOM_INPUT" ${selectVal==="CUSTOM_INPUT"?"selected":""}>✏️ 其他／手動自由輸入...</option>
           </select>
           <input name="vendorName" id="workVendorInput"
