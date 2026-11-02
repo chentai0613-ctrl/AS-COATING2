@@ -555,12 +555,12 @@ async function bootASCoatingSystem(){
     expenses:[
       {key:"date",label:"支出日期",type:"date",required:true},
       {key:"category",label:"支出類別",type:"select",
-        options:["材料","耗材","薪資","水費","電費","房屋租金","停車位費用","大樓管理費","勞健保費","other_custom","other","other_custom","other","其他"]},
+        options:["材料","耗材","薪資","水費","電費","房屋租金","停車位費用","大樓管理費","勞健保費","其他"]},
       {key:"item",label:"支出項目"},
       {key:"amount",label:"支出金額",type:"number",required:true},
       {key:"payee",label:"廠商／請款對象",type:"vendor_dual"},
       {key:"paymentMethod",label:"付款方式",type:"select",
-        options:["現金","匯款","信用卡","other_custom","other","其他"]},
+        options:["現金","匯款","信用卡","其他"]},
       {key:"paid",label:"付款狀態",type:"select",options:["未付款","已完成付款"]},
       {key:"paidDate",label:"付款日期",type:"date"},
       {key:"note",label:"備註",type:"textarea",full:true}
