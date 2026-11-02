@@ -456,7 +456,6 @@ th{background:#fafaf8;color:var(--muted);font-size:12px}
 <div id="toast"></div>
 
 <script>
-/* 登入按鈕啟動保護：Firebase 模組尚未載入時，先提供明確的操作狀態。 */
 (function(){
   const showBootMessage=message=>{
     const box=document.getElementById("loginError");
@@ -516,16 +515,35 @@ async function bootASCoatingSystem(){
 
   /* 汽車美容施工項目 */
   const WORK_ITEMS=[
-    "打蠟","洗車","貼膜前置-打蠟","貼膜前置-鍍膜","貼膜後置","精緻洗車","內裝清潔","內裝深層清潔","外觀美容",
+    "洗車","精緻洗車","內裝清潔","內裝深層清潔","外觀美容",
     "漆面拋光","漆面美容","鍍膜","玻璃鍍膜","輪圈清潔",
-    "引擎室清潔","皮革保養","塑料件保養","其他施工"
+    "引擎室清潔","皮革保養","塑料件保養","打蠟","其他施工"
   ];
 
   /* 工作紀錄專用廠商預設名單 */
   const WORK_VENDORS = ["凱爾", "為班", "57", "AS", "松哥", "杜哥", "阿奇", "阿奇同事"];
 
-  /* 支出與代墊常用廠商預設名單（指定為 AS） */
+  /* 支出與代墊常用廠商預設名單 */
   const DEFAULT_VENDORS = ["AS"];
+
+  /* 每月固定固定支出範本 */
+  const FIXED_MONTHLY_EXPENSES = [
+    { category: "房屋租金", item: "房屋租金", amount: 60000, payee: "AS-奧迪", paymentMethod: "匯款" },
+    { category: "停車位費用", item: "停車位費用", amount: 7000, payee: "AS-奧迪", paymentMethod: "匯款" },
+    { category: "大樓管理費", item: "大樓管理費", amount: 7080, payee: "AS-奧迪", paymentMethod: "匯款" },
+    { category: "勞健保費", item: "勞健保費", amount: 7038, payee: "AS-奧迪", paymentMethod: "匯款" },
+    { category: "餐費", item: "餐費", amount: 8000, payee: "", paymentMethod: "現金" },
+    { category: "元大貸款", item: "元大貸款", amount: 1000, payee: "", paymentMethod: "匯款" },
+    { category: "藥水/耗材", item: "藥水/耗材", amount: 10000, payee: "", paymentMethod: "現金" },
+    { category: "薪資", item: "薪資", amount: 45000, payee: "", paymentMethod: "匯款" }
+  ];
+
+  /* 支出類別選項 */
+  const EXPENSE_CATEGORIES = [
+    "房屋租金", "停車位費用", "大樓管理費", "勞健保費", 
+    "餐費", "元大貸款", "藥水/耗材", "薪資", 
+    "材料", "耗材", "水費", "電費", "其他"
+  ];
 
   /* 模組欄位 */
   const MODULES={
@@ -554,9 +572,8 @@ async function bootASCoatingSystem(){
   const FIELDS={
     expenses:[
       {key:"date",label:"支出日期",type:"date",required:true},
-      {key:"category",label:"支出類別",type:"select",
-        options:["餐費","藥水/耗材","薪資","水費","電費","店租金","停車位費用","大樓管理費","勞健保費","其他"]},
-      {key:"item",label:"支出項目"},
+      {key:"category",label:"支出類別",type:"select", options: EXPENSE_CATEGORIES},
+      {key:"item",label:"支出項目名稱（選其他或手動填寫時呈現）"},
       {key:"amount",label:"支出金額",type:"number",required:true},
       {key:"payee",label:"廠商／請款對象",type:"vendor_dual"},
       {key:"paymentMethod",label:"付款方式",type:"select",
@@ -582,7 +599,7 @@ async function bootASCoatingSystem(){
         options:[
           "AS-奧迪委託施工","房屋租金","場地抵扣租金",
           "停車位費用","大樓管理費","勞健保費",
-          "水費","電費","other_custom","other","其他"
+          "水費","電費","其他"
         ]},
       {key:"item",label:"項目說明"},
       {key:"amount",label:"原始金額",type:"number",required:true},
@@ -623,6 +640,13 @@ async function bootASCoatingSystem(){
   const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
   }[c]));
+
+  const getExpenseDisplayName = r => {
+    if(r.category === "其他" || r.category === "other_custom" || !r.category) {
+      return r.item ? safe(r.item) : "其他支出";
+    }
+    return safe(r.category);
+  };
 
   const isASPerson = s => {
     const str = String(s || "").trim().toUpperCase().replace(/[-\s]/g, "");
@@ -1160,7 +1184,7 @@ async function bootASCoatingSystem(){
     const expenseHTML=expenseRows.map(r=>`
       <tr>
         <td>${safe(r.date||"")}</td>
-        <td>${safe(r.category||"")}</td>
+        <td>${getExpenseDisplayName(r)}</td>
         <td>${safe(r.item||"")}</td>
         <td>${safe(r.payee||"—")}</td>
         <td>${safe(r.paymentMethod||"")}</td>
@@ -1232,7 +1256,7 @@ async function bootASCoatingSystem(){
           <table>
             <thead>
               <tr>
-                <th>支出日期</th><th>支出類別</th><th>支出項目</th>
+                <th>支出日期</th><th>支出類別／項目</th><th>項目備註說明</th>
                 <th>付款對象</th><th>付款方式</th><th>支出金額</th>
               </tr>
             </thead>
@@ -1460,7 +1484,7 @@ async function bootASCoatingSystem(){
         <select name="${f.key}">
           <option value="">請選擇</option>
           ${f.options.map(x=>
-            `<option value="${safe(x)}" ${v===x?"selected":""}>${safe(x==="other_custom"?"其他":x)}</option>`
+            `<option value="${safe(x)}" ${v===x?"selected":""}>${safe(x)}</option>`
           ).join("")}
         </select>
       `;
@@ -1475,8 +1499,6 @@ async function bootASCoatingSystem(){
         </select>
         <input name="${f.key}" id="${f.key}Input" value="${safe(v)}" placeholder="自由輸入名稱" class="${selectVal==="CUSTOM_INPUT"?"":"hidden"}">
       `;
-    }else if(f.key==="item" && page==="expenses"){
-      control=`<input name="item" value="${safe(v)}" placeholder="材料、耗材、其他可自行填寫；其餘類別自動帶入">`;
     }else if(f.type==="textarea"){
       control=`<textarea name="${f.key}">${safe(v)}</textarea>`;
     }else if(f.type==="checkbox"){
@@ -1542,7 +1564,6 @@ async function bootASCoatingSystem(){
 
   function moduleList(m){
     let list=[...records];
-    // 預設各模組僅顯示當前選擇月份的資料（目標設定頁面則依 month 欄位篩選）
     list=list.filter(r=>{
       const dateVal = r.date || r.month || "";
       return String(dateVal).slice(0,7) === dashboardMonth;
@@ -1652,16 +1673,18 @@ async function bootASCoatingSystem(){
         const payeeVal = r.payee || "";
         const isPreset = DEFAULT_VENDORS.includes(payeeVal);
         const selVal = payeeVal === "" ? "" : (isPreset ? payeeVal : "CUSTOM_INPUT");
+        const displayName = getExpenseDisplayName(r);
 
         return `
         <tr data-row-id="${safe(r.id)}">
           <td><input type="date" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="date" value="${safe(r.date)}"></td>
           <td>
-            <select class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="category">
-              ${["材料","耗材","薪資","水費","電費","房屋租金","停車位費用","大樓管理費","勞健保費","其他"].map(x=>
-                `<option ${r.category===x?"selected":""}>${x}</option>`
+            <select class="mini inline-exp-input inline-exp-category" data-id="${safe(r.id)}" data-field="category">
+              ${EXPENSE_CATEGORIES.map(x=>
+                `<option value="${safe(x)}" ${r.category===x?"selected":""}>${safe(x)}</option>`
               ).join("")}
             </select>
+            <span class="small-muted" style="display:block">呈現：<b>${displayName}</b></span>
           </td>
           <td><input type="text" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="item" value="${safe(r.item||"")}"></td>
           <td><input type="number" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="amount" value="${safe(r.amount)}"><span class="small-muted" style="display:block">${displayAmtText}</span></td>
@@ -1767,6 +1790,10 @@ async function bootASCoatingSystem(){
       <input id="vendorSearch" placeholder="廠商名稱篩選" value="${safe(vendorFilter)}">
     `:"";
 
+    const expenseBatchBtn = m === "expenses" ? `
+      <button type="button" class="purple-btn" id="addFixedExpensesBtn" style="margin-left:auto;">⚡ 一鍵產生【${monthName(dashboardMonth)}】8筆固定月支出</button>
+    ` : "";
+
     $("pageContent").innerHTML=`
       <div class="page-top">
         <div>
@@ -1785,7 +1812,10 @@ async function bootASCoatingSystem(){
       ${m==="landlord"?landlordSummaryHTML():""}
 
       <div class="panel" id="editPanel">
-        <h3>${editing?"修改":"新增"}${cfg.title}</h3>
+        <div class="panel-head">
+          <h3>${editing?"修改":"新增"}${cfg.title}</h3>
+          ${expenseBatchBtn}
+        </div>
         <form id="recordForm">
           <div class="grid">${formContent}</div>
           <div class="actions">
@@ -1813,7 +1843,7 @@ async function bootASCoatingSystem(){
                 `:m==="advances"?`
                   <th>代墊日期</th><th>代墊項目</th><th>代墊金額</th><th>代墊對象</th><th>處理狀態</th><th>備註</th><th>操作</th>
                 `:m==="expenses"?`
-                  <th>支出日期</th><th>支出類別</th><th>支出項目</th><th>支出金額</th><th>廠商／對象</th><th>付款方式</th><th>付款狀態</th><th>付款日期</th><th>備註</th><th>操作</th>
+                  <th>支出日期</th><th>支出類別／項目</th><th>項目備註說明</th><th>支出金額</th><th>廠商／對象</th><th>付款方式</th><th>付款狀態</th><th>付款日期</th><th>備註</th><th>操作</th>
                 `:m==="landlord"?`
                   <th>日期</th><th>款項方向</th><th>項目類別</th><th>項目說明</th><th>原始金額</th><th>負擔比例(%)</th><th>負擔金額</th><th>備註</th><th>操作</th>
                 `:m==="goals"?`
@@ -1842,6 +1872,58 @@ async function bootASCoatingSystem(){
         records = await read(m);
         renderModule(m);
       };
+    }
+
+    if(m==="expenses"){
+      const batchBtn = $("addFixedExpensesBtn");
+      if(batchBtn){
+        batchBtn.onclick = async () => {
+          if(!confirm(`確定要為 ${monthName(dashboardMonth)} 自動新增 8 筆固定月支出項目嗎？\n(包含房租$60,000、車位$7,000、管理費$7,080、勞健保$7,038、餐費$8,000、貸款$1,000、藥水/耗材$10,000、薪資$45,000)`)) return;
+          
+          const defaultDate = `${dashboardMonth}-01`;
+          for(const exp of FIXED_MONTHLY_EXPENSES){
+            const newRecord = {
+              date: defaultDate,
+              category: exp.category,
+              item: exp.item,
+              amount: exp.amount,
+              payee: exp.payee,
+              paymentMethod: exp.paymentMethod,
+              paid: "未付款",
+              paidDate: "",
+              note: "固定每月自動產生"
+            };
+
+            let savedId;
+            if(guest()){
+              let list = guestRead("expenses");
+              savedId = "guest_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4);
+              list.push({id: savedId, ...newRecord});
+              guestWrite("expenses", list);
+            } else {
+              const ref = await addDoc(col("expenses"), {...newRecord, createdAt: serverTimestamp()});
+              savedId = ref.id;
+            }
+
+            // 同步連動到 AS-奧迪往來
+            if(isASPerson(exp.payee)){
+              const linked = await syncExpenseToLandlord(newRecord, savedId);
+              if(linked){
+                if(guest()){
+                  let list = guestRead("expenses");
+                  guestWrite("expenses", list.map(r=>r.id===savedId?{...r, landlordLinkId: linked}:r));
+                } else {
+                  await updateDoc(doc(col("expenses"), savedId), {landlordLinkId: linked});
+                }
+              }
+            }
+          }
+          records = await read("expenses");
+          await allData();
+          renderModule("expenses");
+          toast(`已成功新增 ${monthName(dashboardMonth)} 的 8 筆固定月支出！`);
+        };
+      }
     }
 
     $("recordForm").onsubmit=save;
@@ -1964,17 +2046,14 @@ async function bootASCoatingSystem(){
       const paidSelect=form?.elements.paid;
       const paidDateInput=form?.elements.paidDate;
 
-      const manual=["材料","耗材","其他","other_custom","other"];
       const applyExpenseItem=()=>{
         if(!category||!item)return;
-        if(manual.includes(category.value)){
-          item.readOnly=false;
-          if(["薪資","水費","電費","房屋租金","停車位費用","大樓管理費","勞健保費"].includes(item.value))item.value="";
-        }else if(category.value){
-          item.value=category.value;
-          item.readOnly=true;
-        }else{
-          item.value="";item.readOnly=false;
+        if(category.value && category.value !== "其他"){
+          if(!item.value || EXPENSE_CATEGORIES.includes(item.value)){
+            item.value = category.value;
+          }
+        } else if(category.value === "其他") {
+          if(item.value === "其他") item.value = "";
         }
       };
 
@@ -1992,7 +2071,17 @@ async function bootASCoatingSystem(){
 
       category?.addEventListener("change",applyExpenseItem);
       paidSelect?.addEventListener("change",handlePaidStatusChange);
-      applyExpenseItem();
+      
+      document.querySelectorAll(".inline-exp-category").forEach(sel=>{
+        sel.onchange = e => {
+          const row = sel.closest("tr");
+          const itemInp = row?.querySelector('[data-field="item"]');
+          if(itemInp && sel.value !== "Other" && sel.value !== "其他") {
+            itemInp.value = sel.value;
+          }
+        };
+      });
+
       handlePaidStatusChange();
     }
 
