@@ -555,12 +555,12 @@ async function bootASCoatingSystem(){
     expenses:[
       {key:"date",label:"支出日期",type:"date",required:true},
       {key:"category",label:"支出類別",type:"select",
-        options:["材料","耗材","薪資","水費","電費","房屋租金","停車位費用","大樓管理費","勞健保費","other_custom","other","其他"]},
+        options:["材料","耗材","薪資","水費","電費","房屋租金","停車位費用","大樓管理費","勞健保費","other_custom","other","other_custom","other","其他"]},
       {key:"item",label:"支出項目"},
       {key:"amount",label:"支出金額",type:"number",required:true},
       {key:"payee",label:"廠商／請款對象",type:"vendor_dual"},
       {key:"paymentMethod",label:"付款方式",type:"select",
-        options:["現金","匯款","信用卡","其他"]},
+        options:["現金","匯款","信用卡","other_custom","other","其他"]},
       {key:"paid",label:"付款狀態",type:"select",options:["未付款","已完成付款"]},
       {key:"paidDate",label:"付款日期",type:"date"},
       {key:"note",label:"備註",type:"textarea",full:true}
@@ -1542,6 +1542,12 @@ async function bootASCoatingSystem(){
 
   function moduleList(m){
     let list=[...records];
+    // 預設各模組僅顯示當前選擇月份的資料（目標設定頁面則依 month 欄位篩選）
+    list=list.filter(r=>{
+      const dateVal = r.date || r.month || "";
+      return String(dateVal).slice(0,7) === dashboardMonth;
+    });
+
     list=list.filter(r=>searchWords(searchableText(r),search));
     if(m==="work"){
       if(vendorFilter){
@@ -1767,7 +1773,13 @@ async function bootASCoatingSystem(){
           <h1 class="page-title">${cfg.title}</h1>
           <div class="page-desc">${cfg.desc}</div>
         </div>
-        ${backButton()}
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <div class="month-picker">
+            <label for="moduleMonthPicker">檢視月份</label>
+            <input type="month" id="moduleMonthPicker" value="${safe(dashboardMonth)}">
+          </div>
+          ${backButton()}
+        </div>
       </div>
 
       ${m==="landlord"?landlordSummaryHTML():""}
@@ -1817,11 +1829,20 @@ async function bootASCoatingSystem(){
             </tbody>
           </table>
         </div>
-        <div class="note">目前顯示 ${list.length} 筆資料</div>
+        <div class="note">目前顯示 ${monthName(dashboardMonth)} 共 ${list.length} 筆資料</div>
       </div>
     `;
 
     bindBack();
+
+    const mmp = $("moduleMonthPicker");
+    if(mmp){
+      mmp.onchange = async e => {
+        dashboardMonth = e.target.value || dashboardMonth;
+        records = await read(m);
+        renderModule(m);
+      };
+    }
 
     $("recordForm").onsubmit=save;
     $("cancelEdit").onclick=()=>{
