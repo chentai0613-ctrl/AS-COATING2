@@ -345,21 +345,108 @@ th{background:#fafaf8;color:var(--muted);font-size:12px}
   .item-list{grid-template-columns:1fr}
 }
 
-/* 列印請款單 */
-.print-title{display:none}
+/* ========================================================
+   專業正式報表與列印專用樣式（預估淨利報表與請款單專用）
+   ======================================================== */
+.print-header{display:none}
+.print-footer{display:none}
+
 @media print{
-  body{background:white}
-  .topbar,.sidebar,.no-print,#loginPage,#toast{display:none!important}
-  .layout{display:block}
-  .main{padding:0}
-  .panel{box-shadow:none;border:0;padding:8px}
-  table{min-width:0}
-  th,td{font-size:10pt;padding:7px}
-  .invoice-total{
-    color:#c00000!important;font-size:28pt!important;
-    font-weight:900!important;
+  body{background:white!important;color:#000!important}
+  
+  /* 隱藏系統不必要的 UI */
+  .topbar, .sidebar, .no-print, #loginPage, #toast, .month-picker, .toolbar, .actions, form, .page-top, #editPanel{
+    display:none!important;
   }
-  .print-title{display:block!important}
+  
+  .layout{display:block!important;min-height:0!important}
+  .main{padding:0!important;margin:0!important;width:100%!important}
+  
+  /* 確保預估淨利報表與請款單容器在列印時完整顯示 */
+  #printableProfitReport, #invoicePrint, .panel{
+    display:block!important;
+    box-shadow:none!important;
+    border:0!important;
+    padding:4px 0!important;
+    margin:0 0 15px 0!important;
+    background:white!important;
+  }
+
+  /* 顯示正式列印表頭 */
+  .print-header{
+    display:block!important;
+    text-align:center;
+    margin-bottom:15px;
+    border-bottom:2px solid #000;
+    padding-bottom:10px;
+  }
+  .print-header h1{font-size:20pt;font-weight:900;margin:0 0 4px;letter-spacing:2px}
+  .print-header .print-subtitle{font-size:11pt;font-weight:bold;color:#333;margin-bottom:4px}
+  .print-header .print-meta{font-size:10pt;color:#444;display:flex;justify-content:space-between;margin-top:8px}
+
+  /* 營利彙總卡片排版 */
+  .profit-summary{
+    display:flex!important;
+    justify-content:space-between!important;
+    gap:10px!important;
+    margin-bottom:15px!important;
+  }
+  .profit-card{
+    flex:1!important;
+    border:1px solid #444!important;
+    background:#fafafa!important;
+    padding:10px!important;
+    border-radius:0!important;
+  }
+  .profit-card .value{font-size:16pt!important}
+
+  /* 表格正式化與邊框 */
+  table{
+    width:100%!important;
+    border-collapse:collapse!important;
+    margin-top:8px!important;
+  }
+  th, td{
+    border:1px solid #333!important;
+    padding:7px 5px!important;
+    font-size:9.5pt!important;
+    color:#000!important;
+    background:transparent!important;
+  }
+  th{
+    background:#e8e8e8!important;
+    font-weight:bold!important;
+    text-align:center!important;
+  }
+
+  /* 統計與合計欄位 */
+  .report-total, .total-box{
+    background:#f0f0f0!important;
+    border:1px solid #333!important;
+    border-top:0!important;
+    padding:8px 12px!important;
+    text-align:right!important;
+    font-size:11pt!important;
+  }
+  .report-total strong{font-size:14pt!important}
+
+  /* 顯示正式簽章底欄 */
+  .print-footer{
+    display:flex!important;
+    justify-content:space-between;
+    margin-top:35px;
+    padding-top:10px;
+    border-top:1px solid #ccc;
+    font-size:11pt;
+  }
+  .print-sign-box{
+    width:42%;
+    text-align:center;
+  }
+  .print-sign-line{
+    margin-top:30px;
+    border-bottom:1px solid #000;
+  }
 }
 
 /* 響應式版面 */
@@ -515,7 +602,7 @@ async function bootASCoatingSystem(){
 
   /* 汽車美容施工項目 */
   const WORK_ITEMS=[
-     "打蠟","洗車","貼膜前置-打蠟","貼膜前置-鍍膜","貼膜後置","精緻洗車","內裝清潔","內裝深層清潔","外觀美容",
+    "打蠟","洗車","貼膜前置-打蠟","貼膜前置-鍍膜","貼膜後置","精緻洗車","內裝清潔","內裝深層清潔","外觀美容",
     "漆面拋光","漆面美容","鍍膜","玻璃鍍膜","輪圈清潔",
     "引擎室清潔","皮革保養","塑料件保養","其他施工"
   ];
@@ -526,7 +613,7 @@ async function bootASCoatingSystem(){
   /* 支出與代墊常用廠商預設名單 */
   const DEFAULT_VENDORS = ["AS"];
 
-  /* 每月固定固定支出範本 */
+  /* 每月固定支出範本 */
   const FIXED_MONTHLY_EXPENSES = [
     { category: "房屋租金", item: "房屋租金", amount: 60000, payee: "AS-奧迪", paymentMethod: "匯款" },
     { category: "停車位費用", item: "停車位費用", amount: 7000, payee: "AS-奧迪", paymentMethod: "匯款" },
@@ -677,7 +764,7 @@ async function bootASCoatingSystem(){
     } else {
       return {
         title: "🚀 萬事起頭難，全力以赴！",
-        text: `本月進度 ${rate.toFixed(1)}%，尚差 ${money(diff)} 達標。規劃好每日排程，一起開啟亮眼成績！`
+        text: `本月進度 ${rate.toFixed(1)}%，尚差 ${money(diff)} 達標。規劃好每日排程，開啟亮眼成績！`
       };
     }
   }
@@ -905,12 +992,12 @@ async function bootASCoatingSystem(){
     }
 
     const revData=months.map(x=>sum(w.filter(r=>isMonth(r,x))));
-    const costData=months.map(x=>sum(e.filter(r=>isMonth(r,x)&&(r.paid===true||r.paid==="已完成付款")), expenseEffectiveAmount));
+    const costData=months.map(x=>sum(e.filter(r=>isMonth(r,x)&&(r.paid===true||r.paid==="已完成付款"||r.paid==="已付")), expenseEffectiveAmount));
 
     const itemTotals={};
     mw.forEach(r=>{
       (r.items||[]).forEach(item=>{
-        const name=item.name==="other_custom"||item.name==="其他施工"?(item.customName||"其他施工"):item.name;
+        const name=item.name==="other_custom"||item.name==="其他施工"?(item.customName||"Other施工"):item.name;
         itemTotals[name]=(itemTotals[name]||0)+Number(item.price||0);
       });
     });
@@ -1156,15 +1243,20 @@ async function bootASCoatingSystem(){
     const month=dashboardMonth;
 
     const workRows=data.work.filter(r=>isMonth(r,month)).sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
-    const expenseRows=data.expenses.filter(r=>isMonth(r,month)&&(r.paid===true||r.paid==="已完成付款")).sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
+    const expenseRows=data.expenses.filter(r=>isMonth(r,month)&&(r.paid===true||r.paid==="已完成付款"||r.paid==="已付")).sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
 
     const revenueTotal=sum(workRows);
-    const expenseTotal=sum(expenseRows);
+    const expenseTotal=sum(expenseRows, r => {
+      const amt = Number(r.amount || 0);
+      if (r.category === "水費") return amt * 0.5;
+      if (r.category === "電費") return amt * 0.4;
+      return amt;
+    });
     const netTotal=revenueTotal-expenseTotal;
 
     const workHTML=workRows.map(r=>{
       const items=(r.items||[]).map(x=>{
-        const name=x.name==="other_custom"||x.name==="其他施工"?(x.customName||"其他施工"):x.name;
+        const name=x.name==="other_custom"||x.name==="其他施工"?(x.customName||"Other施工"):x.name;
         return safe(name);
       }).join("、")||"—";
 
@@ -1181,95 +1273,121 @@ async function bootASCoatingSystem(){
       `;
     }).join("");
 
-    const expenseHTML=expenseRows.map(r=>`
+    const expenseHTML=expenseRows.map(r=>{
+      const amt = Number(r.amount || 0);
+      let effAmt = amt;
+      let noteExtra = "";
+      if (r.category === "水費") {
+        effAmt = amt * 0.5;
+        noteExtra = ` (水費分攤50%)`;
+      } else if (r.category === "電費") {
+        effAmt = amt * 0.4;
+        noteExtra = ` (電費分攤40%)`;
+      }
+      return `
       <tr>
         <td>${safe(r.date||"")}</td>
         <td>${getExpenseDisplayName(r)}</td>
-        <td>${safe(r.item||"")}</td>
+        <td>${safe(r.item||"")}${safe(noteExtra)}</td>
         <td>${safe(r.payee||"—")}</td>
         <td>${safe(r.paymentMethod||"")}</td>
-        <td><b>${money(r.amount)}</b></td>
+        <td><b>${money(effAmt)}</b></td>
       </tr>
-    `).join("");
+    `;}).join("");
 
     $("pageContent").innerHTML=`
-      <div class="page-top">
-        <div>
-          <h1 class="page-title">預估淨利報表</h1>
-          <div class="page-desc">查看每月工作營收、已付款支出及預估淨利明細。</div>
+      <div id="printableProfitReport">
+        <div class="print-header">
+          <h1>AS COATING 營運管理系統</h1>
+          <div class="print-subtitle">預估淨利報表 (Profit & Loss Statement)</div>
+          <div class="print-meta">
+            <span>統計月份：${safe(monthName(month))}</span>
+            <span>列印日期：${today()}</span>
+          </div>
         </div>
-        ${backButton()}
+
+        <div class="page-top">
+          <div>
+            <h1 class="page-title">預估淨利報表</h1>
+            <div class="page-desc">查看每月工作營收、已付款支出及預估淨利明細。</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap" class="no-print">
+            <div class="month-picker">
+              <label for="profitMonth">報表月份</label>
+              <input type="month" id="profitMonth" value="${safe(month)}">
+            </div>
+            ${backButton()}
+          </div>
+        </div>
+
+        <div class="profit-summary">
+          <div class="profit-card revenue">
+            <div class="label">本月營收總額</div>
+            <div class="value">${money(revenueTotal)}</div>
+            <div class="note">${workRows.length} 筆工作紀錄</div>
+          </div>
+          <div class="profit-card expense">
+            <div class="label">已付款支出總額</div>
+            <div class="value">${money(expenseTotal)}</div>
+            <div class="note">${expenseRows.length} 筆已付款支出（含分攤計算）</div>
+          </div>
+          <div class="profit-card net">
+            <div class="label">預估淨利</div>
+            <div class="value">${money(netTotal)}</div>
+            <div class="note">營收總額－已付款支出總額</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="report-section-title">
+            <h3>一、工作營收明細</h3>
+            <span class="note">${monthName(month)}｜${workRows.length} 筆</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>施工日期</th><th>車牌</th><th>車主</th><th>廠商／請款對象</th>
+                  <th>施工項目</th><th>營收金額</th><th>收款狀態</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${workHTML||`<tr><td colspan="7" class="report-empty">本月份沒有工作營收紀錄。</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+          <div class="report-total">營收合計：<strong class="green-text">${money(revenueTotal)}</strong></div>
+        </div>
+
+        <div class="panel">
+          <div class="report-section-title">
+            <h3>二、已付款支出明細</h3>
+            <span class="note">${monthName(month)}｜${expenseRows.length} 筆</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>支出日期</th><th>支出類別／項目</th><th>項目備註說明</th>
+                  <th>付款對象</th><th>付款方式</th><th>支出金額</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${expenseHTML||`<tr><td colspan="6" class="report-empty">本月份沒有已付款支出紀錄。</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+          <div class="report-total">已付款支出合計：<strong class="orange-text">${money(expenseTotal)}</strong></div>
+        </div>
+
+        <div class="print-footer">
+          <div class="print-sign-box">製表人簽章：<div class="print-sign-line"></div></div>
+          <div class="print-sign-box">核准人簽章：<div class="print-sign-line"></div></div>
+        </div>
       </div>
 
-      <div class="panel no-print">
-        <div class="month-picker">
-          <label for="profitMonth">報表月份</label>
-          <input type="month" id="profitMonth" value="${safe(month)}">
-        </div>
-      </div>
-
-      <div class="profit-summary">
-        <div class="profit-card revenue">
-          <div class="label">本月營收總額</div>
-          <div class="value">${money(revenueTotal)}</div>
-          <div class="note">${workRows.length} 筆工作紀錄</div>
-        </div>
-        <div class="profit-card expense">
-          <div class="label">已付款支出總額</div>
-          <div class="value">${money(expenseTotal)}</div>
-          <div class="note">${expenseRows.length} 筆已付款支出</div>
-        </div>
-        <div class="profit-card net">
-          <div class="label">預估淨利</div>
-          <div class="value">${money(netTotal)}</div>
-          <div class="note">營收總額－已付款支出總額</div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="report-section-title">
-          <h3>一、工作營收明細</h3>
-          <span class="note">${monthName(month)}｜${workRows.length} 筆</span>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>施工日期</th><th>車牌</th><th>車主</th><th>廠商／請款對象</th>
-                <th>施工項目</th><th>營收金額</th><th>收款狀態</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${workHTML||`<tr><td colspan="7" class="report-empty">本月份沒有工作營收紀錄。</td></tr>`}
-            </tbody>
-          </table>
-        </div>
-        <div class="report-total">營收合計：<strong class="green-text">${money(revenueTotal)}</strong></div>
-      </div>
-
-      <div class="panel">
-        <div class="report-section-title">
-          <h3>二、已付款支出明細</h3>
-          <span class="note">${monthName(month)}｜${expenseRows.length} 筆</span>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>支出日期</th><th>支出類別／項目</th><th>項目備註說明</th>
-                <th>付款對象</th><th>付款方式</th><th>支出金額</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${expenseHTML||`<tr><td colspan="6" class="report-empty">本月份沒有已付款支出紀錄。</td></tr>`}
-            </tbody>
-          </table>
-        </div>
-        <div class="report-total">已付款支出合計：<strong class="orange-text">${money(expenseTotal)}</strong></div>
-      </div>
-
-      <div class="actions no-print">
-        <button class="secondary" id="printProfitReport">列印報表／另存 PDF</button>
+      <div class="actions no-print" style="margin-top:20px;">
+        <button class="primary" id="printProfitReport">🖨️ 列印正式報表／另存 PDF</button>
         <button class="back-dashboard" id="backDashboardBottom">返回營運總覽</button>
       </div>
     `;
@@ -1369,24 +1487,27 @@ async function bootASCoatingSystem(){
         <div class="field">
           <label>收款狀態</label>
           <select name="paymentStatus">
-            ${["已收","未收","月結","其他"].map(x=>
+            ${["未收","已收","月結","其他"].map(x=>
               `<option ${r.paymentStatus===x?"selected":""}>${x}</option>`
             ).join("")}
           </select>
         </div>
         <div class="field">
           <label>收款方式</label>
-          <select name="paymentMethod">
+          <select name="paymentMethod" id="workPaymentMethodSelect">
             ${["現金","匯款","月結","抵扣"].map(x=>
               `<option ${r.paymentMethod===x?"selected":""}>${x}</option>`
             ).join("")}
           </select>
         </div>
-        <div class="field">
-          <label>匯款帳號後五碼（匯款時填寫）</label>
+        <div class="field ${r.paymentMethod==="匯款"?"":"hidden"}" id="workTransferFields">
+          <label>匯款帳號後 4~5 碼</label>
           <input name="transferLast5" maxlength="5"
             value="${safe(r.transferLast5||"")}"
-            placeholder="五碼">
+            placeholder="例如: 1234 或 12345">
+          <label style="margin-top:6px">匯款日期</label>
+          <input name="transferDate" type="date"
+            value="${safe(r.transferDate||"")}">
         </div>
         <div class="field full">
           <label>備註</label>
@@ -1443,6 +1564,18 @@ async function bootASCoatingSystem(){
         }
       };
     }
+
+    const pmSel = $("workPaymentMethodSelect");
+    const tfFields = $("workTransferFields");
+    if(pmSel && tfFields){
+      pmSel.onchange = () => {
+        if(pmSel.value === "匯款"){
+          tfFields.classList.remove("hidden");
+        } else {
+          tfFields.classList.add("hidden");
+        }
+      };
+    }
   }
 
   function getWorkData(form){
@@ -1450,7 +1583,7 @@ async function bootASCoatingSystem(){
     document.querySelectorAll(".work-item-check:checked").forEach(c=>{
       const p=document.querySelector(`[data-price="${CSS.escape(c.dataset.item)}"]`);
       const item={
-        name:c.dataset.item==="其他施工"?"other_custom":c.dataset.item,
+        name:c.dataset.item==="other_custom"||c.dataset.item==="其他施工"?"other_custom":c.dataset.item,
         price:Number(p?.value||0)
       };
 
@@ -1472,7 +1605,8 @@ async function bootASCoatingSystem(){
       amount:Number(f.amount.value||0),
       paymentStatus:f.paymentStatus.value,
       paymentMethod:f.paymentMethod.value,
-      transferLast5:f.transferLast5.value.trim(),
+      transferLast5:f.paymentMethod==="匯款" ? f.transferLast5.value.trim() : "",
+      transferDate:f.paymentMethod==="匯款" ? f.transferDate.value : "",
       note:f.note.value.trim()
     };
   }
@@ -1556,7 +1690,7 @@ async function bootASCoatingSystem(){
 
     return [
       r.date,r.month,r.plate,r.owner,r.car,r.vendorName,
-      r.paymentStatus,r.paymentMethod,r.transferLast5,r.note,
+      r.paymentStatus,r.paymentMethod,r.transferLast5,r.transferDate,r.note,
       r.category,r.item,r.payee,r.person,r.status,
       r.direction,r.type,itemText
     ].filter(Boolean).join(" ");
@@ -1615,7 +1749,10 @@ async function bootASCoatingSystem(){
                 `<option ${r.paymentMethod===x?"selected":""}>${x}</option>`
               ).join("")}
             </select>
-            <input type="text" class="mini inline-work-input transfer-last5-input ${r.paymentMethod==="匯款"?"":"hidden"}" data-id="${safe(r.id)}" data-field="transferLast5" maxlength="5" placeholder="後5碼" value="${safe(r.transferLast5||"")}" style="margin-top:4px;width:70px;">
+            <div class="inline-transfer-area ${r.paymentMethod==="匯款"?"":"hidden"}" style="margin-top:4px;">
+              <input type="text" class="mini inline-work-input" data-id="${safe(r.id)}" data-field="transferLast5" maxlength="5" placeholder="後4~5碼" value="${safe(r.transferLast5||"")}" style="width:75px;margin-bottom:2px;">
+              <input type="date" class="mini inline-work-input" data-id="${safe(r.id)}" data-field="transferDate" value="${safe(r.transferDate||"")}" style="width:115px;">
+            </div>
           </td>
           <td>
             <button class="primary mini inline-save-btn" data-module="work" data-id="${safe(r.id)}">儲存</button>
@@ -1905,7 +2042,6 @@ async function bootASCoatingSystem(){
               savedId = ref.id;
             }
 
-            // 同步連動到 AS-奧迪往來
             if(isASPerson(exp.payee)){
               const linked = await syncExpenseToLandlord(newRecord, savedId);
               if(linked){
@@ -2108,13 +2244,13 @@ async function bootASCoatingSystem(){
             <label>廠商名稱</label>
             <select id="invoiceVendor">
               <option value="">全部廠商</option>
-              ${vendors.map(v=>`<option value="${safe(v)}" ${vendorFilter===v?"selected":""}>${safe(v)}</option>`).join("")}
+              ${vendors.map(v=>`<option value="${safe(v)}" ${vendorFilter===v?"selected":""}>${safe(v)}</option>`)}
             </select>
           </div>
         </div>
         <div class="actions">
           <button class="primary" id="makeInvoice">產生請款單</button>
-          <button class="secondary" id="printInvoice">列印／另存 PDF</button>
+          <button class="secondary" id="printInvoice">🖨️ 列印正式請款單／另存 PDF</button>
         </div>
       </div>
       <div id="invoiceResult"></div>
@@ -2157,14 +2293,25 @@ async function bootASCoatingSystem(){
 
     $("invoiceResult").innerHTML=`
       <div class="panel" id="invoicePrint">
-        <div class="print-title"><h2>AS COATING｜施工請款明細</h2></div>
-        <h2>AS COATING｜施工請款明細</h2>
-        <div class="note">請款月份：${safe(monthName(month))} 請款對象：${safe(vendor||"全部廠商")}</div>
-        <div class="summary-grid" style="margin:16px 0">
+        <div class="print-header">
+          <h1>AS COATING</h1>
+          <div class="print-subtitle">廠商施工請款明細對帳單</div>
+          <div class="print-meta">
+            <span>請款月份：${safe(monthName(month))}</span>
+            <span>請款對象：${safe(vendor||"全部廠商")}</span>
+            <span>列印日期：${today()}</span>
+          </div>
+        </div>
+
+        <h2 class="no-print">AS COATING｜施工請款明細</h2>
+        <div class="note no-print">請款月份：${safe(monthName(month))} 請款對象：${safe(vendor||"全部廠商")}</div>
+        
+        <div class="summary-grid">
           <div class="summary-card">本月請款總額<b class="invoice-total">${money(total)}</b></div>
           <div class="summary-card">已收金額<b class="green-text">${money(paidTotal)}</b></div>
           <div class="summary-card">未收／月結<b class="red-text">${money(unpaidTotal)}</b></div>
         </div>
+
         <div class="table-wrap">
           <table>
             <thead>
@@ -2173,7 +2320,7 @@ async function bootASCoatingSystem(){
             <tbody>
               ${list.map(r=>`
                 <tr>
-                  <td>${safe(r.date)}</td><td>${safe(r.plate)}</td><td>${safe(r.owner)}</td><td>${safe(r.car)}</td>
+                  <td>${safe(r.date)}</td><td>${safe(r.plate)}</td><td>${safe(r.owner||"—")}</td><td>${safe(r.car||"—")}</td>
                   <td>${(r.items||[]).map(x=>{
                     const n=x.name==="other_custom"||x.name==="其他施工"?(x.customName||"其他施工"):x.name;
                     return safe(n)+" "+money(x.price);
@@ -2184,8 +2331,14 @@ async function bootASCoatingSystem(){
             </tbody>
           </table>
         </div>
-        <div style="text-align:right;margin-top:20px;font-size:17px;font-weight:bold">
+
+        <div style="text-align:right;margin-top:20px;font-size:16px;font-weight:bold">
           請款總額：<span class="invoice-total">${money(total)}</span>
+        </div>
+
+        <div class="print-footer">
+          <div class="print-sign-box">AS COATING 經手人：<div class="print-sign-line"></div></div>
+          <div class="print-sign-box">客戶／廠商簽收：<div class="print-sign-line"></div></div>
         </div>
       </div>
     `;
@@ -2488,13 +2641,27 @@ async function bootASCoatingSystem(){
 
     container.innerHTML = `
       <div class="panel" style="background:#fff; border:2px dashed #71877b;">
+        <div class="print-header">
+          <h1>AS COATING ＆ 奧迪</h1>
+          <div class="print-subtitle">往來對帳結算明細表 (Statement of Accounts)</div>
+          <div class="print-meta">
+            <span>結算月份：${safe(monthName(month))}</span>
+            <span>列印日期：${today()}</span>
+          </div>
+        </div>
+
         <div class="panel-head">
           <h3>AS COATING ＆ 奧迪 — ${safe(monthName(month))} 往來對帳結算明細</h3>
-          <button class="secondary mini no-print" id="printStatementBtn">列印／截圖對帳單</button>
+          <button class="secondary mini no-print" id="printStatementBtn">🖨️ 列印正式對帳單／另存 PDF</button>
         </div>
         ${renderTable("一、應付款項", deductionItems, false)}
         ${renderTable("二、AS 工作紀錄項目", workItems, true)}
         ${renderTable("三、代墊項目", advanceItems, false)}
+
+        <div class="print-footer">
+          <div class="print-sign-box">AS COATING 簽章：<div class="print-sign-line"></div></div>
+          <div class="print-sign-box">奧迪代表簽章：<div class="print-sign-line"></div></div>
+        </div>
       </div>
     `;
 
@@ -2516,8 +2683,8 @@ async function bootASCoatingSystem(){
         toast("施工總金額不可為負數。");
         return;
       }
-      if(data.paymentMethod==="匯款"&&!/^\d{5}$/.test(data.transferLast5)){
-        toast("匯款方式請填寫五碼帳號末五碼。");
+      if(data.paymentMethod==="匯款"&&data.transferLast5&&!/^\d{4,5}$/.test(data.transferLast5)){
+        toast("匯款帳號後 4~5 碼格式不正確。");
         return;
       }
     }else{
