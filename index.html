@@ -275,40 +275,174 @@ textarea{min-height:75px;resize:vertical}
 .toolbar select{width:auto;min-width:130px;max-width:100%}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
 
-/* 表格專屬包裝：手機模式下自動取消水平捲動、讓表格完整展開以便截圖 */
+/* ========================================================
+   全模組統一：卡片式清單（電腦版單直欄垂直排列、手機版滿版）
+   ======================================================== */
+.records-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 14px;
+  width: 100%;
+}
+
+.generic-card {
+  background: white;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 18px rgba(41, 56, 47, 0.06);
+  position: relative;
+  overflow: hidden;
+  border-left: 6px solid #648875;
+  width: 100%;
+}
+.generic-card.border-red { border-left-color: #c36e70; }
+.generic-card.border-orange { border-left-color: #c58a55; }
+.generic-card.border-blue { border-left-color: #698db5; }
+.generic-card.border-purple { border-left-color: #9278ad; }
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+.card-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.card-date {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.card-main-title {
+  font-size: 19px;
+  font-weight: 900;
+  color: var(--ink);
+  letter-spacing: 0.5px;
+}
+.card-right-group {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.card-amount {
+  font-size: 22px;
+  font-weight: 900;
+  color: #3b74a6;
+}
+.badge-status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.badge-green { background: #e8f5ec; color: #438755; }
+.badge-red { background: #fde8e8; color: #b84242; }
+.badge-orange { background: #fef3e6; color: #b26c2e; }
+.badge-purple { background: #f2edf8; color: #755d91; }
+.badge-gray { background: #f0f0ed; color: #606060; }
+
+.card-body-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  font-size: 13.5px;
+  color: #4a564f;
+  margin: 12px 0;
+  padding: 10px 0;
+  border-top: 1px solid #f2f0eb;
+  border-bottom: 1px solid #f2f0eb;
+}
+.card-item {
+  display: flex;
+  gap: 6px;
+  overflow-wrap: anywhere;
+}
+.card-item span.label {
+  color: var(--muted);
+}
+.card-note {
+  font-size: 12.5px;
+  color: var(--muted);
+  font-style: italic;
+  margin-bottom: 12px;
+}
+.card-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+}
+.card-actions button {
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.btn-card-edit { background: #f0f4f2; color: #4b6a5b; }
+.btn-card-toggle { background: #fcf0ee; color: #b84242; }
+.btn-card-delete { background: #f7f7f4; color: #7a7a7a; }
+
+/* 彈出式編輯視窗 (Modal) 樣式 */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(35, 45, 40, 0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+.modal-content {
+  background: white;
+  width: 100%;
+  max-width: 650px;
+  max-height: 90vh;
+  border-radius: 20px;
+  padding: 24px;
+  overflow-y: auto;
+  box-shadow: 0 15px 50px rgba(0,0,0,0.18);
+  animation: slideUp 0.25s ease-out;
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 10px;
+}
+.modal-header h3 { margin: 0; font-size: 18px; color: var(--ink); }
+.modal-close-btn {
+  background: #f0f0ed;
+  color: var(--muted);
+  border-radius: 50%;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: bold; cursor: pointer; padding: 0;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* 傳統表格包裝（備用） */
 .table-wrap{
   width:100%;max-width:100%;overflow-x:auto;
   -webkit-overflow-scrolling:touch;
 }
-@media(max-width:768px){
-  .table-wrap{
-    overflow-x:visible!important;
-  }
-  table{
-    min-width:0!important;
-    width:100%!important;
-    table-layout:fixed;
-  }
-  th,td{
-    padding:6px 4px!important;
-    font-size:11px!important;
-    word-break:break-all;
-  }
-}
-
-table{width:100%;border-collapse:collapse;min-width:720px}
+table{width:100%;border-collapse:collapse;min-width:850px}
 th,td{
   padding:11px 9px;border-bottom:1px solid var(--line);
   text-align:left;font-size:13px;vertical-align:top;
 }
 th{background:#fafaf8;color:var(--muted);font-size:12px}
 .mini{padding:6px 9px;font-size:11px}
-.status{
-  display:inline-block;border-radius:20px;padding:4px 8px;
-  font-size:11px;background:#edf1ed;color:#536b60;
-}
-.status.warn{background:#f8eee4;color:#a46c34}
-.status.bad{background:#f8e8e6;color:#b84242}
 .note{font-size:12px;color:var(--muted);line-height:1.8}
 .check{display:flex;align-items:center;gap:8px}
 .check input{width:18px;height:18px}
@@ -338,31 +472,23 @@ th{background:#fafaf8;color:var(--muted);font-size:12px}
   border-radius:10px;max-width:90vw;
 }
 
-/* 針對半屏或較窄視窗（小於 1024px）自動調整工作紀錄表單與施工項目清單 */
 @media(max-width:1024px){
   .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .field.full{grid-column:1/-1}
   .item-list{grid-template-columns:1fr}
 }
 
-/* ========================================================
-   專業正式報表與列印專用樣式（預估淨利報表與請款單專用）
-   ======================================================== */
+/* 專業正式報表與列印專用樣式 */
 .print-header{display:none}
 .print-footer{display:none}
 
 @media print{
   body{background:white!important;color:#000!important}
-  
-  /* 隱藏系統不必要的 UI */
-  .topbar, .sidebar, .no-print, #loginPage, #toast, .month-picker, .toolbar, .actions, form, .page-top, #editPanel{
+  .topbar, .sidebar, .no-print, #loginPage, #toast, .month-picker, .toolbar, .actions, form, .page-top, #editPanel, .modal-overlay{
     display:none!important;
   }
-  
   .layout{display:block!important;min-height:0!important}
   .main{padding:0!important;margin:0!important;width:100%!important}
-  
-  /* 確保預估淨利報表與請款單容器在列印時完整顯示 */
   #printableProfitReport, #invoicePrint, .panel{
     display:block!important;
     box-shadow:none!important;
@@ -371,8 +497,6 @@ th{background:#fafaf8;color:var(--muted);font-size:12px}
     margin:0 0 15px 0!important;
     background:white!important;
   }
-
-  /* 顯示正式列印表頭 */
   .print-header{
     display:block!important;
     text-align:center;
@@ -383,8 +507,6 @@ th{background:#fafaf8;color:var(--muted);font-size:12px}
   .print-header h1{font-size:20pt;font-weight:900;margin:0 0 4px;letter-spacing:2px}
   .print-header .print-subtitle{font-size:11pt;font-weight:bold;color:#333;margin-bottom:4px}
   .print-header .print-meta{font-size:10pt;color:#444;display:flex;justify-content:space-between;margin-top:8px}
-
-  /* 營利彙總卡片排版 */
   .profit-summary{
     display:flex!important;
     justify-content:space-between!important;
@@ -399,8 +521,6 @@ th{background:#fafaf8;color:var(--muted);font-size:12px}
     border-radius:0!important;
   }
   .profit-card .value{font-size:16pt!important}
-
-  /* 表格正式化與邊框 */
   table{
     width:100%!important;
     border-collapse:collapse!important;
@@ -418,8 +538,6 @@ th{background:#fafaf8;color:var(--muted);font-size:12px}
     font-weight:bold!important;
     text-align:center!important;
   }
-
-  /* 統計與合計欄位 */
   .report-total, .total-box{
     background:#f0f0f0!important;
     border:1px solid #333!important;
@@ -429,8 +547,6 @@ th{background:#fafaf8;color:var(--muted);font-size:12px}
     font-size:11pt!important;
   }
   .report-total strong{font-size:14pt!important}
-
-  /* 顯示正式簽章底欄 */
   .print-footer{
     display:flex!important;
     justify-content:space-between;
@@ -449,7 +565,6 @@ th{background:#fafaf8;color:var(--muted);font-size:12px}
   }
 }
 
-/* 響應式版面 */
 @media(max-width:1150px){
   .metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
@@ -540,6 +655,9 @@ th{background:#fafaf8;color:var(--muted);font-size:12px}
   </div>
 </section>
 
+<!-- 彈出式編輯視窗容器 (Modal Container) -->
+<div id="modalContainer"></div>
+
 <div id="toast"></div>
 
 <script>
@@ -602,8 +720,9 @@ async function bootASCoatingSystem(){
 
   /* 汽車美容施工項目（包含詳細鍍膜類別選單） */
   const WORK_ITEMS=[
-   "打蠟","洗車","貼膜前置-打蠟","貼膜前置-鍍膜","貼膜後置", "洗車","精緻洗車","內裝清潔","內裝深層清潔","外觀美容",
-    "漆面拋光","漆面美容",
+    "洗車","精緻洗車","內裝清潔","內裝深層清潔","外觀美容",
+    "漆面拋光","漆面美容","打蠟",
+    "鍍膜",
     "義大利一層鍍膜",
     "義大利二層鍍膜",
     "義大利三層鍍膜",
@@ -616,6 +735,9 @@ async function bootASCoatingSystem(){
 
   /* 工作紀錄專用廠商預設名單 */
   const WORK_VENDORS = ["凱爾", "為班", "57", "AS", "松哥", "杜哥", "阿奇", "阿奇同事"];
+
+  /* 常用車主預設名單 */
+  const WORK_OWNERS = ["奧迪", "林先生", "陳小姐", "黃先生", "王董"];
 
   /* 支出與代墊常用廠商預設名單 */
   const DEFAULT_VENDORS = ["AS"];
@@ -712,7 +834,6 @@ async function bootASCoatingSystem(){
   let role=null;
   let page="dashboard";
   let records=[];
-  let editing=null;
   let search="";
   let vendorFilter="";
   let paymentFilter="全部";
@@ -751,17 +872,17 @@ async function bootASCoatingSystem(){
     if (rate >= 100) {
       return {
         title: "🏆 超越目標，極致達標！",
-        text: `恭喜完美達成目標！目前營收已超越設定目標 ${money(Math.abs(diff))}，感謝團隊的付出與堅持！`
+        text: `恭喜完美達成目標！目前營收已超越設定目標 ${money(Math.abs(diff))}[cite: 1]，感謝團隊的付出與堅持！`
       };
     } else if (rate >= 90) {
       return {
         title: "🎉 臨門一腳，勝利在望！",
-        text: `太厲害了！進度已達到 ${rate.toFixed(1)}%，距離目標僅差 ${money(diff)}，準備迎接慶祝時刻！`
+        text: `太厲害了！進度已達到 ${rate.toFixed(1)}%，距離目標僅差 ${money(diff)}[cite: 1]，準備迎接慶祝時刻！`
       };
     } else if (rate >= 60) {
       return {
         title: "🔥 保持衝勁，繼續突破！",
-        text: `目標完成度已達 ${rate.toFixed(1)}%，距離達標還差 ${money(diff)}，再接再厲衝破大關！`
+        text: `目標完成度已達 ${rate.toFixed(1)}%，距離達標還差 ${money(diff)}[cite: 1]，再接再厲衝破大關！`
       };
     } else if (rate >= 30) {
       return {
@@ -771,7 +892,7 @@ async function bootASCoatingSystem(){
     } else {
       return {
         title: "🚀 萬事起頭難，全力以赴！",
-        text: `本月進度 ${rate.toFixed(1)}%，尚差 ${money(diff)} 達標。規劃好每日排程，開啟亮眼成績！`
+        text: `本月進度 ${rate.toFixed(1)}%，尚差 ${money(diff)} 達標[cite: 1]。規劃好每日排程，開啟亮眼成績！`
       };
     }
   }
@@ -894,7 +1015,6 @@ async function bootASCoatingSystem(){
 
   async function loadPage(p){
     page=p;
-    editing=null;
     search="";
     vendorFilter="";
     paymentFilter="全部";
@@ -1194,7 +1314,7 @@ async function bootASCoatingSystem(){
             if(key && key.startsWith("AS_COATING_GUEST_"))keys.push(key);
           }
           keys.forEach(key=>localStorage.removeItem(key));
-          records=[];editing=null;search="";vendorFilter="";paymentFilter="全部";
+          records=[];search="";vendorFilter="";paymentFilter="全部";
           await dashboard();
           toast("本機測試資料已全部清除");
         }catch(err){toast("清除失敗："+err.message);}
@@ -1408,280 +1528,502 @@ async function bootASCoatingSystem(){
     $("printProfitReport").onclick=()=>window.print();
   }
 
-  /* 工作紀錄表單 */
-  function workFormHTML(r={}){
-    const selected=Array.isArray(r.items)?r.items:[];
-    const other=selected.find(x=>x.name==="other_custom"||x.name==="其他施工");
+  /* 表單與欄位產生器 */
+  function recordFormHTML(m, r={}){
+    if(m==="work"){
+      const selected=Array.isArray(r.items)?r.items:[];
+      const other=selected.find(x=>x.name==="other_custom"||x.name==="其他施工");
+      const itemRows=WORK_ITEMS.map(name=>{
+        const found=selected.find(x=>x.name===name);
+        return `
+          <div class="item-row">
+            <input type="checkbox" class="work-item-check" data-item="${safe(name)}" ${found?"checked":""}>
+            <label>${safe(name)}</label>
+            <input type="number" min="0" step="1" class="work-item-price" data-price="${safe(name)}" placeholder="金額" value="${found?Number(found.price||0):""}">
+          </div>
+        `;
+      }).join("");
 
-    const itemRows=WORK_ITEMS.map(name=>{
-      const found=selected.find(x=>x.name===name);
+      const val = r.vendorName || "";
+      const isPreset = WORK_VENDORS.includes(val);
+      const selectVal = val === "" ? "" : (isPreset ? val : "CUSTOM_INPUT");
+
+      const ownerVal = r.owner || "";
+      const isOwnerPreset = WORK_OWNERS.includes(ownerVal);
+      const ownerSelectVal = ownerVal === "" ? "" : (isOwnerPreset ? ownerVal : "CUSTOM_INPUT");
+
       return `
-        <div class="item-row">
-          <input type="checkbox"
-            class="work-item-check"
-            data-item="${safe(name)}"
-            ${found?"checked":""}>
-          <label>${safe(name)}</label>
-          <input type="number"
-            min="0" step="1"
-            class="work-item-price"
-            data-price="${safe(name)}"
-            placeholder="金額"
-            value="${found?Number(found.price||0):""}">
+        <div class="grid">
+          <div class="field">
+            <label>施工日期 *</label>
+            <input name="date" type="date" required value="${safe(r.date||today())}">
+          </div>
+          <div class="field">
+            <label>車牌 *</label>
+            <input name="plate" required value="${safe(r.plate||"")}">
+          </div>
+          <div class="field">
+            <label>車主</label>
+            <select id="workOwnerSelect" style="margin-bottom:6px">
+              <option value="">（無車主／自由空白）</option>
+              ${WORK_OWNERS.map(o=>`<option value="${safe(o)}" ${ownerSelectVal===o?"selected":""}>${safe(o)}</option>`)}
+              <option value="CUSTOM_INPUT" ${ownerSelectVal==="CUSTOM_INPUT"?"selected":""}>✏️ 其他／手動自由輸入...</option>
+            </select>
+            <input name="owner" id="workOwnerInput" value="${safe(ownerVal)}" placeholder="請輸入車主名稱" class="${ownerSelectVal==="CUSTOM_INPUT"?"":"hidden"}">
+          </div>
+          <div class="field">
+            <label>車款</label>
+            <input name="car" value="${safe(r.car||"")}">
+          </div>
+          <div class="field">
+            <label>車色</label>
+            <input name="carColor" value="${safe(r.carColor||"")}" placeholder="例如：白、黑、銀">
+          </div>
+          <div class="field">
+            <label>廠商／請款對象</label>
+            <select id="workVendorSelect" style="margin-bottom:6px">
+              <option value="">（無廠商／自由空白）</option>
+              ${WORK_VENDORS.map(v=>`<option value="${safe(v)}" ${selectVal===v?"selected":""}>${safe(v)}</option>`)}
+              <option value="CUSTOM_INPUT" ${selectVal==="CUSTOM_INPUT"?"selected":""}>✏️ 其他／手動自由輸入...</option>
+            </select>
+            <input name="vendorName" id="workVendorInput" value="${safe(val)}" placeholder="請輸入廠商名稱" class="${selectVal==="CUSTOM_INPUT"?"":"hidden"}">
+          </div>
+          <div class="field full">
+            <label>施工項目（可複選，各項目可輸入金額）</label>
+            <div class="item-list">${itemRows}</div>
+          </div>
+          <div class="field full ${other?"":"hidden"}" id="otherWorkField">
+            <label>其他施工項目名稱 *</label>
+            <input name="otherWorkName" id="otherWorkName" value="${safe(other?.customName||"")}" placeholder="請輸入實際施工項目">
+          </div>
+          <div class="field full">
+            <div class="total-box">
+              <span>施工項目合計</span>
+              <strong id="workItemTotal">${money(sum(selected,x=>x.price))}</strong>
+            </div>
+          </div>
+          <div class="field">
+            <label>本筆總金額 *</label>
+            <input name="amount" type="number" min="0" step="1" required value="${safe(r.amount??"")}">
+          </div>
+          <div class="field">
+            <label>收款狀態</label>
+            <select name="paymentStatus">
+              ${["已收","未收","月結","其他"].map(x=>`<option ${r.paymentStatus===x?"selected":""}>${x}</option>`)}
+            </select>
+          </div>
+          <div class="field">
+            <label>收款方式</label>
+            <select name="paymentMethod" id="workPaymentMethodSelect">
+              ${["現金","匯款","月結","抵扣"].map(x=>`<option ${r.paymentMethod===x?"selected":""}>${x}</option>`)}
+            </select>
+          </div>
+          <div class="field ${r.paymentMethod==="匯款"?"":"hidden"}" id="workTransferFields">
+            <label>匯款帳號後 4~5 碼</label>
+            <input name="transferLast5" maxlength="5" value="${safe(r.transferLast5||r.transferCode||"")}" placeholder="例如: 1234">
+            <label style="margin-top:6px">匯款日期</label>
+            <input name="transferDate" type="date" value="${safe(r.transferDate||r.remitDate||"")}">
+          </div>
+          <div class="field full">
+            <label>備註</label>
+            <textarea name="note">${safe(r.note||"")}</textarea>
+          </div>
+        </div>
+      `;
+    }
+
+    return FIELDS[m].map(f=>{
+      let v = r[f.key] ?? "";
+      let control="";
+      if(f.type==="select"){
+        control=`
+          <select name="${f.key}">
+            <option value="">請選擇</option>
+            ${f.options.map(x=>`<option value="${safe(x)}" ${v===x?"selected":""}>${safe(x)}</option>`)}
+          </select>
+        `;
+      }else if(f.type==="vendor_dual"){
+        const isPreset = DEFAULT_VENDORS.includes(v);
+        const selectVal = v === "" ? "" : (isPreset ? v : "CUSTOM_INPUT");
+        control=`
+          <select class="vendor-dual-select" data-target="${f.key}" style="margin-bottom:6px">
+            <option value="">（無／自由空白）</option>
+            ${DEFAULT_VENDORS.map(opt=>`<option value="${safe(opt)}" ${selectVal===opt?"selected":""}>${safe(opt)}</option>`)}
+            <option value="CUSTOM_INPUT" ${selectVal==="CUSTOM_INPUT"?"selected":""}>✏️ 其他／手動自由輸入...</option>
+          </select>
+          <input name="${f.key}" id="${f.key}Input" value="${safe(v)}" placeholder="自由輸入名稱" class="${selectVal==="CUSTOM_INPUT"?"":"hidden"}">
+        `;
+      }else if(f.type==="textarea"){
+        control=`<textarea name="${f.key}">${safe(v)}</textarea>`;
+      }else if(f.type==="checkbox"){
+        control=`
+          <label class="check">
+            <input type="checkbox" name="${f.key}" ${v===true||v==="已完成付款"?"checked":""}>
+            已完成付款
+          </label>
+        `;
+      }else{
+        control=`
+          <input name="${f.key}" type="${f.type||"text"}" value="${safe(v || (f.type==="month"&&page==="goals"?new Date().toISOString().slice(0,7):""))}" ${f.required?"required":""} ${f.type==="number"?'min="0" step="1"':""}>
+        `;
+      }
+      if(f.type==="checkbox")return `<div class="field">${control}</div>`;
+      return `
+        <div class="field ${f.full?"full":""}">
+          <label>${f.label}${f.required?" *":""}</label>
+          ${control}
         </div>
       `;
     }).join("");
+  }
 
-    const val = r.vendorName || "";
-    const isPreset = WORK_VENDORS.includes(val);
-    const selectVal = val === "" ? "" : (isPreset ? val : "CUSTOM_INPUT");
+  function bindFormBehaviors(m){
+    if(m==="work"){
+      const checks=[...document.querySelectorAll(".work-item-check")];
+      const prices=[...document.querySelectorAll(".work-item-price")];
+      const update=()=>{
+        let total=0;
+        let otherChecked=false;
+        checks.forEach(c=>{
+          const p=document.querySelector(`[data-price="${CSS.escape(c.dataset.item)}"]`);
+          if(c.checked)total+=Number(p?.value||0);
+          if(c.dataset.item==="其他施工")otherChecked=c.checked;
+        });
+        const otherField=$("otherWorkField");
+        if(otherField)otherField.classList.toggle("hidden",!otherChecked);
+        const totalBox=$("workItemTotal");
+        if(totalBox)totalBox.textContent=money(total);
+        const amountInput=$("recordForm")?.elements.amount;
+        if(amountInput)amountInput.value=total;
+      };
+      checks.forEach(c=>c.onchange=update);
+      prices.forEach(p=>{
+        p.oninput=()=>{
+          const check=checks.find(c=>c.dataset.item===p.dataset.price);
+          if(check && p.value.trim()!=="")check.checked=true;
+          update();
+        };
+      });
+      update();
 
-    return `
-      <div class="grid">
-        <div class="field">
-          <label>施工日期 *</label>
-          <input name="date" type="date" required value="${safe(r.date||today())}">
-        </div>
-        <div class="field">
-          <label>車牌 *</label>
-          <input name="plate" required value="${safe(r.plate||"")}">
-        </div>
-        <div class="field">
-          <label>車主</label>
-          <input name="owner" value="${safe(r.owner||"")}">
-        </div>
-        <div class="field">
-          <label>車款</label>
-          <input name="car" value="${safe(r.car||"")}">
-        </div>
-        <div class="field">
-          <label>車色</label>
-          <input name="carColor" value="${safe(r.carColor||"")}" placeholder="例如：白、黑、銀">
-        </div>
-        <div class="field">
-          <label>廠商／請款對象</label>
-          <select id="workVendorSelect" style="margin-bottom:6px">
-            <option value="">（無廠商／自由空白）</option>
-            ${WORK_VENDORS.map(v=>`<option value="${safe(v)}" ${selectVal===v?"selected":""}>${safe(v)}</option>`).join("")}
-            <option value="CUSTOM_INPUT" ${selectVal==="CUSTOM_INPUT"?"selected":""}>✏️ 其他／手動自由輸入...</option>
-          </select>
-          <input name="vendorName" id="workVendorInput"
-            value="${safe(val)}"
-            placeholder="請輸入廠商名稱"
-            class="${selectVal==="CUSTOM_INPUT"?"":"hidden"}">
-        </div>
-        <div class="field full">
-          <label>施工項目（可複選，各項目可輸入金額）</label>
-          <div class="item-list">${itemRows}</div>
-        </div>
-        <div class="field full ${other?"":"hidden"}" id="otherWorkField">
-          <label>其他施工項目名稱 *</label>
-          <input name="otherWorkName" id="otherWorkName"
-            value="${safe(other?.customName||"")}"
-            placeholder="請輸入實際施工項目">
-        </div>
-        <div class="field full">
-          <div class="total-box">
-            <span>施工項目合計</span>
-            <strong id="workItemTotal">${money(sum(selected,x=>x.price))}</strong>
+      const vSelect = $("workVendorSelect");
+      const vInput = $("workVendorInput");
+      if(vSelect && vInput){
+        vSelect.onchange = () => {
+          if(vSelect.value === "CUSTOM_INPUT"){
+            vInput.classList.remove("hidden");
+            vInput.focus();
+          } else {
+            vInput.classList.add("hidden");
+            vInput.value = vSelect.value;
+          }
+        };
+      }
+      const oSelect = $("workOwnerSelect");
+      const oInput = $("workOwnerInput");
+      if(oSelect && oInput){
+        oSelect.onchange = () => {
+          if(oSelect.value === "CUSTOM_INPUT"){
+            oInput.classList.remove("hidden");
+            oInput.focus();
+          } else {
+            oInput.classList.add("hidden");
+            oInput.value = oSelect.value;
+          }
+        };
+      }
+      const pmSel = $("workPaymentMethodSelect");
+      const tfFields = $("workTransferFields");
+      if(pmSel && tfFields){
+        pmSel.onchange = () => {
+          if(pmSel.value === "匯款"){
+            tfFields.classList.remove("hidden");
+          } else {
+            tfFields.classList.add("hidden");
+          }
+        };
+      }
+    }else{
+      document.querySelectorAll(".vendor-dual-select").forEach(sel=>{
+        const targetId = sel.dataset.target + "Input";
+        const inp = $(targetId);
+        if(!inp)return;
+        sel.onchange = () => {
+          if(sel.value === "CUSTOM_INPUT"){
+            inp.classList.remove("hidden");
+            inp.focus();
+          } else {
+            inp.classList.add("hidden");
+            inp.value = sel.value;
+          }
+        };
+      });
+
+      if(m==="expenses"){
+        const form=$("recordForm");
+        const category=form?.elements.category;
+        const item=form?.elements.item;
+        const applyExpenseItem=()=>{
+          if(!category||!item)return;
+          if(category.value && category.value !== "其他"){
+            if(!item.value || EXPENSE_CATEGORIES.includes(item.value)){
+              item.value = category.value;
+            }
+          }
+        };
+        category?.addEventListener("change",applyExpenseItem);
+      }
+
+      if(m==="landlord"){
+        const form=$("recordForm");
+        const category=form?.elements.category;
+        const share=form?.elements.share;
+        const item=form?.elements.item;
+        if(category){
+          category.onchange=()=>{
+            if(category.value==="水費" && share) share.value=50;
+            else if(category.value==="電費" && share) share.value=40;
+            else if(share && !share.dataset.userChanged) share.value="";
+            if(item && (!item.dataset || !item.dataset.customInput)){
+              item.value = category.value || "";
+            }
+          };
+        }
+        if(share) share.oninput=()=>share.dataset.userChanged="1";
+        if(item) item.oninput=()=>item.dataset.customInput = item.value.trim() !== "" ? "1" : "";
+      }
+    }
+  }
+
+  function openModal(m, recordId=null){
+    const isEdit = Boolean(recordId);
+    const current = isEdit ? records.find(r=>r.id===recordId)||{} : {};
+    const cfg = MODULES[m];
+
+    $("modalContainer").innerHTML = `
+      <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>${isEdit?"修改":"新增"}${cfg.title}</h3>
+            <button class="modal-close-btn" id="modalCloseBtn">✕</button>
           </div>
-        </div>
-        <div class="field">
-          <label>本筆總金額 *</label>
-          <input name="amount" type="number" min="0" step="1"
-            required value="${safe(r.amount??"")}">
-        </div>
-        <div class="field">
-          <label>收款狀態</label>
-          <select name="paymentStatus">
-            ${["未收","已收","月結","其他"].map(x=>
-              `<option ${r.paymentStatus===x?"selected":""}>${x}</option>`
-            ).join("")}
-          </select>
-        </div>
-        <div class="field">
-          <label>收款方式</label>
-          <select name="paymentMethod" id="workPaymentMethodSelect">
-            ${["現金","匯款","月結","抵扣"].map(x=>
-              `<option ${r.paymentMethod===x?"selected":""}>${x}</option>`
-            ).join("")}
-          </select>
-        </div>
-        <div class="field ${r.paymentMethod==="匯款"?"":"hidden"}" id="workTransferFields">
-          <label>匯款帳號後 4~5 碼</label>
-          <input name="transferLast5" maxlength="5"
-            value="${safe(r.transferLast5||"")}"
-            placeholder="例如: 1234 或 12345">
-          <label style="margin-top:6px">匯款日期</label>
-          <input name="transferDate" type="date"
-            value="${safe(r.transferDate||"")}">
-        </div>
-        <div class="field full">
-          <label>備註</label>
-          <textarea name="note">${safe(r.note||"")}</textarea>
+          <form id="recordForm">
+            ${recordFormHTML(m, current)}
+            <div class="actions" style="margin-top:20px; justify-content:flex-end;">
+              <button class="secondary" type="button" id="modalCancelBtn">取消</button>
+              <button class="primary" type="submit">儲存資料</button>
+            </div>
+          </form>
         </div>
       </div>
     `;
-  }
 
-  function bindWorkItems(){
-    const checks=[...document.querySelectorAll(".work-item-check")];
-    const prices=[...document.querySelectorAll(".work-item-price")];
+    bindFormBehaviors(m);
 
-    function update(){
-      let total=0;
-      let otherChecked=false;
+    $("modalCloseBtn").onclick = closeModal;
+    $("modalCancelBtn").onclick = closeModal;
+    $("modalOverlay").onclick = e => {
+      if(e.target === $("modalOverlay")) closeModal();
+    };
 
-      checks.forEach(c=>{
-        const p=document.querySelector(`[data-price="${CSS.escape(c.dataset.item)}"]`);
-        if(c.checked)total+=Number(p?.value||0);
-        if(c.dataset.item==="其他施工")otherChecked=c.checked;
-      });
-
-      const otherField=$("otherWorkField");
-      if(otherField)otherField.classList.toggle("hidden",!otherChecked);
-
-      const totalBox=$("workItemTotal");
-      if(totalBox)totalBox.textContent=money(total);
-
-      const amountInput=$("recordForm")?.elements.amount;
-      if(amountInput)amountInput.value=total;
-    }
-
-    checks.forEach(c=>c.onchange=update);
-    prices.forEach(p=>{
-      p.oninput=()=>{
-        const check=checks.find(c=>c.dataset.item===p.dataset.price);
-        if(check && p.value.trim()!=="")check.checked=true;
-        update();
-      };
-    });
-    update();
-
-    const vSelect = $("workVendorSelect");
-    const vInput = $("workVendorInput");
-    if(vSelect && vInput){
-      vSelect.onchange = () => {
-        if(vSelect.value === "CUSTOM_INPUT"){
-          vInput.classList.remove("hidden");
-          vInput.focus();
-        } else {
-          vInput.classList.add("hidden");
-          vInput.value = vSelect.value;
-        }
-      };
-    }
-
-    const pmSel = $("workPaymentMethodSelect");
-    const tfFields = $("workTransferFields");
-    if(pmSel && tfFields){
-      pmSel.onchange = () => {
-        if(pmSel.value === "匯款"){
-          tfFields.classList.remove("hidden");
-        } else {
-          tfFields.classList.add("hidden");
-        }
-      };
-    }
-  }
-
-  function getWorkData(form){
-    const selected=[];
-    document.querySelectorAll(".work-item-check:checked").forEach(c=>{
-      const p=document.querySelector(`[data-price="${CSS.escape(c.dataset.item)}"]`);
-      const item={
-        name:c.dataset.item==="other_custom"||c.dataset.item==="其他施工"?"other_custom":c.dataset.item,
-        price:Number(p?.value||0)
-      };
-
-      if(c.dataset.item==="其他施工"){
-        item.customName=form.elements.otherWorkName.value.trim();
-      }
-      selected.push(item);
-    });
-
-    const f=form.elements;
-    return {
-      date:f.date.value,
-      plate:f.plate.value.trim(),
-      owner:f.owner.value.trim(),
-      car:f.car.value.trim(),
-      carColor:f.carColor.value.trim(),
-      vendorName:f.vendorName.value.trim(),
-      items:selected,
-      amount:Number(f.amount.value||0),
-      paymentStatus:f.paymentStatus.value,
-      paymentMethod:f.paymentMethod.value,
-      transferLast5:f.paymentMethod==="匯款" ? f.transferLast5.value.trim() : "",
-      transferDate:f.paymentMethod==="匯款" ? f.transferDate.value : "",
-      note:f.note.value.trim()
+    $("recordForm").onsubmit = async e => {
+      e.preventDefault();
+      await saveRecord(m, recordId, e.target);
     };
   }
 
-  function fieldHTML(f,v=""){
-    let control="";
-    if(f.type==="select"){
-      control=`
-        <select name="${f.key}">
-          <option value="">請選擇</option>
-          ${f.options.map(x=>
-            `<option value="${safe(x)}" ${v===x?"selected":""}>${safe(x)}</option>`
-          ).join("")}
-        </select>
-      `;
-    }else if(f.type==="vendor_dual"){
-      const isPreset = DEFAULT_VENDORS.includes(v);
-      const selectVal = v === "" ? "" : (isPreset ? v : "CUSTOM_INPUT");
-      control=`
-        <select class="vendor-dual-select" data-target="${f.key}" style="margin-bottom:6px">
-          <option value="">（無／自由空白）</option>
-          ${DEFAULT_VENDORS.map(opt=>`<option value="${safe(opt)}" ${selectVal===opt?"selected":""}>${safe(opt)}</option>`).join("")}
-          <option value="CUSTOM_INPUT" ${selectVal==="CUSTOM_INPUT"?"selected":""}>✏️ 其他／手動自由輸入...</option>
-        </select>
-        <input name="${f.key}" id="${f.key}Input" value="${safe(v)}" placeholder="自由輸入名稱" class="${selectVal==="CUSTOM_INPUT"?"":"hidden"}">
-      `;
-    }else if(f.type==="textarea"){
-      control=`<textarea name="${f.key}">${safe(v)}</textarea>`;
-    }else if(f.type==="checkbox"){
-      control=`
-        <label class="check">
-          <input type="checkbox" name="${f.key}" ${v===true?"checked":""}>
-          已完成付款
-        </label>
-      `;
-    }else{
-      control=`
-        <input name="${f.key}" type="${f.type||"text"}"
-          value="${safe(v || (f.type==="month"&&page==="goals"?new Date().toISOString().slice(0,7):""))}"
-          ${f.required?"required":""}
-          ${f.type==="number"?'min="0" step="1"':""}>
-      `;
-    }
-
-    if(f.type==="checkbox")return `<div class="field">${control}</div>`;
-    return `
-      <div class="field ${f.full?"full":""}">
-        <label>${f.label}${f.required?" *":""}</label>
-        ${control}
-      </div>
-    `;
+  function closeModal(){
+    $("modalContainer").innerHTML = "";
   }
 
-  function bindVendorDuals(){
-    document.querySelectorAll(".vendor-dual-select").forEach(sel=>{
-      const targetId = sel.dataset.target + "Input";
-      const inp = $(targetId);
-      if(!inp)return;
-      sel.onchange = () => {
-        if(sel.value === "CUSTOM_INPUT"){
-          inp.classList.remove("hidden");
-          inp.focus();
-        } else {
-          inp.classList.add("hidden");
-          inp.value = sel.value;
-        }
-      };
-    });
+  /* 產生各模組專屬的卡片清單 HTML */
+  function renderCards(m, list){
+    if(list.length === 0){
+      return `<div class="empty panel">目前沒有符合條件的紀錄</div>`;
+    }
+
+    return `
+      <div class="records-cards-grid">
+        ${list.map(r => {
+          if(m === "work"){
+            const isPaid = r.paymentStatus === "已收";
+            const isUnpaid = r.paymentStatus === "未收";
+            const borderClass = isPaid ? "" : (isUnpaid ? "border-red" : "border-orange");
+            const badgeClass = isPaid ? "badge-green" : (isUnpaid ? "badge-red" : "badge-orange");
+            const itemText = (r.items||[]).map(x=>{
+              const name = x.name==="other_custom"||x.name==="其他施工" ? (x.customName||"其他施工") : x.name;
+              return safe(name);
+            }).join("、") || "—";
+            
+            /* 若車主空白且有廠商資訊，則標題顯示廠商名稱；若兩者皆空白則顯示 (無車主) */
+            let titleDisplay = "（無車主）";
+            if(r.owner && r.owner.trim()){
+              titleDisplay = safe(r.owner);
+            } else if(r.vendorName && r.vendorName.trim()){
+              titleDisplay = `廠商：${safe(r.vendorName)}`;
+            }
+
+            const nextStatus = isPaid ? "未收" : "已收";
+            const nextStatusBtnText = isPaid ? "改為未收" : "改為已收";
+
+            return `
+              <div class="generic-card ${borderClass}" data-id="${safe(r.id)}">
+                <div class="card-top">
+                  <div class="card-title-group">
+                    <div class="card-date">${safe(r.date)}</div>
+                    <div class="card-main-title">${titleDisplay}</div>
+                  </div>
+                  <div class="card-right-group">
+                    <div class="card-amount">${money(r.amount)}</div>
+                    <span class="badge-status ${badgeClass}">${safe(r.paymentStatus || "未收")}</span>
+                  </div>
+                </div>
+                <div class="card-body-grid">
+                  <div class="card-item"><span class="label">車牌：</span>${safe(r.plate||"—")}</div>
+                  <div class="card-item"><span class="label">車款：</span>${safe(r.car||"—")}</div>
+                  <div class="card-item"><span class="label">車色：</span>${safe(r.carColor||"—")}</div>
+                  <div class="card-item"><span class="label">施工：</span>${itemText}</div>
+                  <div class="card-item" style="grid-column: 1 / -1;"><span class="label">廠商：</span>${safe(r.vendorName||"—")}</div>
+                </div>
+                ${r.note ? `<div class="card-note">備註：${safe(r.note)}</div>` : ""}
+                <div class="card-actions">
+                  <button class="btn-card-edit" data-edit="${safe(r.id)}">編輯</button>
+                  <button class="btn-card-toggle" data-toggle-status="${safe(r.id)}" data-next="${nextStatus}">${nextStatusBtnText}</button>
+                  <button class="btn-card-delete" data-delete="${safe(r.id)}">刪除</button>
+                </div>
+              </div>
+            `;
+          }
+
+          if(m === "expenses"){
+            const isPaid = r.paid === true || r.paid === "已完成付款";
+            const badgeClass = isPaid ? "badge-green" : "badge-red";
+            const displayName = getExpenseDisplayName(r);
+            const amt = Number(r.amount || 0);
+            let subAmtText = "";
+            if(r.category === "水費") subAmtText = ` (分攤50%: ${money(amt * 0.5)})`;
+            if(r.category === "電費") subAmtText = ` (分攤40%: ${money(amt * 0.4)})`;
+
+            return `
+              <div class="generic-card ${isPaid?"":"border-red"}" data-id="${safe(r.id)}">
+                <div class="card-top">
+                  <div class="card-title-group">
+                    <div class="card-date">${safe(r.date)}</div>
+                    <div class="card-main-title">${displayName}</div>
+                  </div>
+                  <div class="card-right-group">
+                    <div class="card-amount">${money(amt)}</div>
+                    <span class="badge-status ${badgeClass}">${safe(r.paid || "未付款")}</span>
+                  </div>
+                </div>
+                <div class="card-body-grid">
+                  <div class="card-item"><span class="label">項目：</span>${safe(r.item||"—")}${safe(subAmtText)}</div>
+                  <div class="card-item"><span class="label">對象：</span>${safe(r.payee||"—")}</div>
+                  <div class="card-item"><span class="label">付款：</span>${safe(r.paymentMethod||"—")}</div>
+                  <div class="card-item"><span class="label">付費日：</span>${safe(r.paidDate||"—")}</div>
+                </div>
+                ${r.note ? `<div class="card-note">備註：${safe(r.note)}</div>` : ""}
+                <div class="card-actions">
+                  <button class="btn-card-edit" data-edit="${safe(r.id)}">編輯</button>
+                  <button class="btn-card-delete" data-delete="${safe(r.id)}">刪除</button>
+                </div>
+              </div>
+            `;
+          }
+
+          if(m === "advances"){
+            const isCollected = r.status === "已收回" || r.status === "已抵扣";
+            const badgeClass = isCollected ? "badge-green" : "badge-orange";
+
+            return `
+              <div class="generic-card ${isCollected?"":"border-orange"}" data-id="${safe(r.id)}">
+                <div class="card-top">
+                  <div class="card-title-group">
+                    <div class="card-date">${safe(r.date)}</div>
+                    <div class="card-main-title">${safe(r.item)}</div>
+                  </div>
+                  <div class="card-right-group">
+                    <div class="card-amount">${money(r.amount)}</div>
+                    <span class="badge-status ${badgeClass}">${safe(r.status || "待收回")}</span>
+                  </div>
+                </div>
+                <div class="card-body-grid">
+                  <div class="card-item" style="grid-column: 1 / -1;"><span class="label">代墊對象：</span>${safe(r.person||"—")}</div>
+                </div>
+                ${r.note ? `<div class="card-note">備註：${safe(r.note)}</div>` : ""}
+                <div class="card-actions">
+                  <button class="btn-card-edit" data-edit="${safe(r.id)}">編輯</button>
+                  <button class="btn-card-delete" data-delete="${safe(r.id)}">刪除</button>
+                </div>
+              </div>
+            `;
+          }
+
+          if(m === "landlord"){
+            const isIncoming = r.direction === "AS-奧迪應付 AS COATING";
+            const borderClass = isIncoming ? "" : "border-orange";
+            const badgeClass = isIncoming ? "badge-green" : "badge-orange";
+            const effAmt = landlordEffectiveAmount(r);
+
+            return `
+              <div class="generic-card ${borderClass}" data-id="${safe(r.id)}">
+                <div class="card-top">
+                  <div class="card-title-group">
+                    <div class="card-date">${safe(r.date)}</div>
+                    <div class="card-main-title">${safe(r.category)}</div>
+                  </div>
+                  <div class="card-right-group">
+                    <div class="card-amount">${money(effAmt)}</div>
+                    <span class="badge-status ${badgeClass}">${safe(r.direction)}</span>
+                  </div>
+                </div>
+                <div class="card-body-grid">
+                  <div class="card-item"><span class="label">項目說明：</span>${safe(r.item||"—")}</div>
+                  <div class="card-item"><span class="label">原始金額：</span>${money(r.amount)}</div>
+                  <div class="card-item" style="grid-column: 1 / -1;"><span class="label">負擔比例：</span>${r.share ? r.share+"%" : "100%"}</div>
+                </div>
+                ${r.note ? `<div class="card-note">備註：${safe(r.note)}</div>` : ""}
+                <div class="card-actions">
+                  <button class="btn-card-edit" data-edit="${safe(r.id)}">編輯</button>
+                  <button class="btn-card-delete" data-delete="${safe(r.id)}">刪除</button>
+                </div>
+              </div>
+            `;
+          }
+
+          if(m === "goals"){
+            const targetAmt = Number(r.target || 0);
+            const workdays = Number(r.workdays || 0);
+            const avgRev = workdays > 0 ? money(targetAmt / workdays) : "—";
+
+            return `
+              <div class="generic-card border-purple" data-id="${safe(r.id)}">
+                <div class="card-top">
+                  <div class="card-title-group">
+                    <div class="card-date">目標月份</div>
+                    <div class="card-main-title">${safe(r.month)}</div>
+                  </div>
+                  <div class="card-right-group">
+                    <div class="card-amount" style="color:#755d91;">${money(targetAmt)}</div>
+                    <span class="badge-status badge-purple">月營收目標</span>
+                  </div>
+                </div>
+                <div class="card-body-grid">
+                  <div class="card-item"><span class="label">上班天數：</span>${workdays} 天</div>
+                  <div class="card-item"><span class="label">每日目標：</span>${avgRev}</div>
+                </div>
+                <div class="card-actions">
+                  <button class="btn-card-edit" data-edit="${safe(r.id)}">編輯</button>
+                  <button class="btn-card-delete" data-delete="${safe(r.id)}">刪除</button>
+                </div>
+              </div>
+            `;
+          }
+
+          return "";
+        }).join("")}
+      </div>
+    `;
   }
 
   function searchWords(text,query){
@@ -1728,204 +2070,10 @@ async function bootASCoatingSystem(){
     return list.sort((a,b)=>String(b.date||b.month||"").localeCompare(String(a.date||a.month||"")));
   }
 
-  function workRows(list){
-    return list.map(r=>{
-      const itemText=(r.items||[]).map(x=>{
-        const name=x.name==="other_custom"||x.name==="其他施工"?(x.customName||"其他施工"):x.name;
-        return `${safe(name)} ${money(x.price)}`;
-      }).join("<br>")||"—";
-
-      return `
-        <tr data-row-id="${safe(r.id)}">
-          <td>${safe(r.date)}</td>
-          <td>${safe(r.plate)}</td>
-          <td>${safe(r.owner||"—")}<span class="small-muted" style="display:block">車款: ${safe(r.car||"—")}</span></td>
-          <td>${safe(r.vendorName||"—")}</td>
-          <td>${itemText}</td>
-          <td><b>${money(r.amount)}</b></td>
-          <td>
-            <select class="mini inline-work-input" data-id="${safe(r.id)}" data-field="paymentStatus">
-              ${["已收","未收","月結","其他"].map(x=>
-                `<option ${r.paymentStatus===x?"selected":""}>${x}</option>`
-              ).join("")}
-            </select>
-          </td>
-          <td>
-            <select class="mini inline-work-input payment-method-select" data-id="${safe(r.id)}" data-field="paymentMethod">
-              ${["現金","匯款","月結","抵扣"].map(x=>
-                `<option ${r.paymentMethod===x?"selected":""}>${x}</option>`
-              ).join("")}
-            </select>
-            <div class="inline-transfer-area ${r.paymentMethod==="匯款"?"":"hidden"}" style="margin-top:4px;">
-              <input type="text" class="mini inline-work-input" data-id="${safe(r.id)}" data-field="transferLast5" maxlength="5" placeholder="後4~5碼" value="${safe(r.transferLast5||"")}" style="width:75px;margin-bottom:2px;">
-              <input type="date" class="mini inline-work-input" data-id="${safe(r.id)}" data-field="transferDate" value="${safe(r.transferDate||"")}" style="width:115px;">
-            </div>
-          </td>
-          <td>
-            <button class="primary mini inline-save-btn" data-module="work" data-id="${safe(r.id)}">儲存</button>
-            <button class="secondary mini" data-edit="${safe(r.id)}">詳情</button>
-            <button class="danger mini" data-delete="${safe(r.id)}">刪除</button>
-          </td>
-        </tr>
-      `;
-    }).join("");
-  }
-
-  function genericRows(m,list,fields){
-    if(m==="advances"){
-      return list.map(r=>{
-        const pVal = r.person || "";
-        const isPreset = DEFAULT_VENDORS.includes(pVal);
-        const selVal = pVal === "" ? "" : (isPreset ? pVal : "CUSTOM_INPUT");
-        return `
-        <tr data-row-id="${safe(r.id)}">
-          <td><input type="date" class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="date" value="${safe(r.date)}"></td>
-          <td><input type="text" class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="item" value="${safe(r.item)}"></td>
-          <td><input type="number" class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="amount" value="${safe(r.amount)}"></td>
-          <td>
-            <select class="mini inline-adv-input inline-vendor-select" data-id="${safe(r.id)}" data-field="person" data-target-input="personInput_${safe(r.id)}" style="margin-bottom:4px">
-              <option value="">（無）</option>
-              ${DEFAULT_VENDORS.map(opt=>`<option value="${safe(opt)}" ${selVal===opt?"selected":""}>${safe(opt)}</option>`).join("")}
-              <option value="CUSTOM_INPUT" ${selVal==="CUSTOM_INPUT"?"selected":""}>✏️其他</option>
-            </select>
-            <input type="text" id="personInput_${safe(r.id)}" class="mini inline-adv-input ${selVal==="CUSTOM_INPUT"?"":"hidden"}" data-id="${safe(r.id)}" data-field="person" value="${safe(pVal)}" placeholder="代墊對象">
-          </td>
-          <td>
-            <select class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="status">
-              ${["待收回","已收回","已抵扣"].map(x=>`<option ${r.status===x?"selected":""}>${x}</option>`)}
-            </select>
-          </td>
-          <td><textarea class="mini inline-adv-input" data-id="${safe(r.id)}" data-field="note" rows="1">${safe(r.note||"")}</textarea></td>
-          <td>
-            <button class="primary mini inline-save-btn" data-module="advances" data-id="${safe(r.id)}">儲存</button>
-            <button class="secondary mini" data-edit="${safe(r.id)}">詳情</button>
-            <button class="danger mini" data-delete="${safe(r.id)}">刪除</button>
-          </td>
-        </tr>
-      `;}).join("");
-    }
-    if(m==="expenses"){
-      return list.map(r=>{
-        const amt = Number(r.amount || 0);
-        let displayAmtText = money(amt);
-        if (r.category === "水費") {
-          displayAmtText = `${money(amt)} <span class="small-muted" style="display:block">(負擔: ${money(amt * 0.5)})</span>`;
-        } else if (r.category === "電費") {
-          displayAmtText = `${money(amt)} <span class="small-muted" style="display:block">(負擔: ${money(amt * 0.4)})</span>`;
-        }
-
-        const payeeVal = r.payee || "";
-        const isPreset = DEFAULT_VENDORS.includes(payeeVal);
-        const selVal = payeeVal === "" ? "" : (isPreset ? payeeVal : "CUSTOM_INPUT");
-        const displayName = getExpenseDisplayName(r);
-
-        return `
-        <tr data-row-id="${safe(r.id)}">
-          <td><input type="date" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="date" value="${safe(r.date)}"></td>
-          <td>
-            <select class="mini inline-exp-input inline-exp-category" data-id="${safe(r.id)}" data-field="category">
-              ${EXPENSE_CATEGORIES.map(x=>
-                `<option value="${safe(x)}" ${r.category===x?"selected":""}>${safe(x)}</option>`
-              ).join("")}
-            </select>
-            <span class="small-muted" style="display:block">呈現：<b>${displayName}</b></span>
-          </td>
-          <td><input type="text" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="item" value="${safe(r.item||"")}"></td>
-          <td><input type="number" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="amount" value="${safe(r.amount)}"><span class="small-muted" style="display:block">${displayAmtText}</span></td>
-          <td>
-            <select class="mini inline-exp-input inline-vendor-select" data-id="${safe(r.id)}" data-field="payee" data-target-input="payeeInput_${safe(r.id)}" style="margin-bottom:4px">
-              <option value="">（無）</option>
-              ${DEFAULT_VENDORS.map(opt=>`<option value="${safe(opt)}" ${selVal===opt?"selected":""}>${safe(opt)}</option>`).join("")}
-              <option value="CUSTOM_INPUT" ${selVal==="CUSTOM_INPUT"?"selected":""}>✏️其他</option>
-            </select>
-            <input type="text" id="payeeInput_${safe(r.id)}" class="mini inline-exp-input ${selVal==="CUSTOM_INPUT"?"":"hidden"}" data-id="${safe(r.id)}" data-field="payee" value="${safe(payeeVal)}" placeholder="請款對象">
-          </td>
-          <td>
-            <select class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="paymentMethod">
-              ${["現金","匯款","信用卡","其他"].map(x=>`<option ${r.paymentMethod===x?"selected":""}>${x}</option>`)}
-            </select>
-          </td>
-          <td>
-            <select class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="paid">
-              ${["未付款","已完成付款"].map(x=>`<option ${(r.paid===x||(r.paid===true&&x==="已完成付款")||(r.paid===false&&x==="未付款"))?"selected":""}>${x}</option>`)}
-            </select>
-          </td>
-          <td><input type="date" class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="paidDate" value="${safe(r.paidDate||"")}"></td>
-          <td><textarea class="mini inline-exp-input" data-id="${safe(r.id)}" data-field="note" rows="1">${safe(r.note||"")}</textarea></td>
-          <td>
-            <button class="primary mini inline-save-btn" data-module="expenses" data-id="${safe(r.id)}">儲存</button>
-            <button class="secondary mini" data-edit="${safe(r.id)}">詳情</button>
-            <button class="danger mini" data-delete="${safe(r.id)}">刪除</button>
-          </td>
-        </tr>
-      `;}).join("");
-    }
-    if(m==="landlord"){
-      return list.map(r=>`
-        <tr data-row-id="${safe(r.id)}">
-          <td><input type="date" class="mini inline-land-input" data-id="${safe(r.id)}" data-field="date" value="${safe(r.date)}"></td>
-          <td>
-            <select class="mini inline-land-input" data-id="${safe(r.id)}" data-field="direction">
-              ${["AS-奧迪應付 AS COATING","AS COATING 應付 AS-奧迪"].map(x=>`<option ${r.direction===x?"selected":""}>${x}</option>`)}
-            </select>
-          </td>
-          <td>
-            <select class="mini inline-land-input" data-id="${safe(r.id)}" data-field="category">
-              ${["AS-奧迪委託施工","房屋租金","場地抵扣租金","停車位費用","大樓管理費","勞健保費","水費","電費","其他"].map(x=>`<option ${r.category===x?"selected":""}>${x}</option>`)}
-            </select>
-          </td>
-          <td><input type="text" class="mini inline-land-input" data-id="${safe(r.id)}" data-field="item" value="${safe(r.item)}"></td>
-          <td><input type="number" class="mini inline-land-input" data-id="${safe(r.id)}" data-field="amount" value="${safe(r.amount)}"></td>
-          <td><input type="number" class="mini inline-land-input" data-id="${safe(r.id)}" data-field="share" value="${safe(r.share??"")}" placeholder="${r.category==="水費"?"50":r.category==="電費"?"40":"100"}"></td>
-          <td><b class="green-text">${money(landlordEffectiveAmount(r))}</b></td>
-          <td><textarea class="mini inline-land-input" data-id="${safe(r.id)}" data-field="note" rows="1">${safe(r.note||"")}</textarea></td>
-          <td>
-            <button class="primary mini inline-save-btn" data-module="landlord" data-id="${safe(r.id)}">儲存</button>
-            <button class="secondary mini" data-edit="${safe(r.id)}">詳情</button>
-            <button class="danger mini" data-delete="${safe(r.id)}">刪除</button>
-          </td>
-        </tr>
-      `).join("");
-    }
-    if(m==="goals"){
-      return list.map(r=>`
-        <tr data-row-id="${safe(r.id)}">
-          <td><input type="month" class="mini inline-goal-input" data-id="${safe(r.id)}" data-field="month" value="${safe(r.month)}"></td>
-          <td><input type="number" class="mini inline-goal-input" data-id="${safe(r.id)}" data-field="target" value="${safe(r.target)}"></td>
-          <td><input type="number" class="mini inline-goal-input" data-id="${safe(r.id)}" data-field="workdays" value="${safe(r.workdays)}"></td>
-          <td>
-            <button class="primary mini inline-save-btn" data-module="goals" data-id="${safe(r.id)}">儲存</button>
-            <button class="secondary mini" data-edit="${safe(r.id)}">詳情</button>
-            <button class="danger mini" data-delete="${safe(r.id)}">刪除</button>
-          </td>
-        </tr>
-      `).join("");
-    }
-    return list.map(r=>`
-      <tr>
-        ${fields.map(f=>{
-          let v=r[f.key]??"";
-          if(f.key==="amount"||f.key==="target")v=money(v);
-          return `<td>${safe(v)}</td>`;
-        }).join("")}
-        <td>
-          <button class="secondary mini" data-edit="${safe(r.id)}">修改</button>
-          <button class="danger mini" data-delete="${safe(r.id)}">刪除</button>
-        </td>
-      </tr>
-    `).join("");
-  }
-
   function renderModule(m){
     const cfg=MODULES[m];
     const list=moduleList(m);
     const isWork=m==="work";
-    const fields=isWork?[]:FIELDS[m];
-    const cols=isWork?[]:fields.filter(f=>f.type!=="textarea"&&f.type!=="checkbox").slice(0,7);
-    const current=editing?records.find(r=>r.id===editing)||{}:{};
-
-    let formContent=isWork?workFormHTML(current):fields.map(f=>fieldHTML(f,current[f.key])).join("");
-    const tableRows=isWork?workRows(list):genericRows(m,list,cols);
 
     const workFilters=isWork?`
       <select id="paymentFilter">
@@ -1955,18 +2103,13 @@ async function bootASCoatingSystem(){
 
       ${m==="landlord"?landlordSummaryHTML():""}
 
-      <div class="panel" id="editPanel">
+      <div class="panel">
         <div class="panel-head">
-          <h3>${editing?"修改":"新增"}${cfg.title}</h3>
-          ${expenseBatchBtn}
-        </div>
-        <form id="recordForm">
-          <div class="grid">${formContent}</div>
-          <div class="actions">
-            <button class="primary" type="submit">儲存資料</button>
-            <button type="button" class="secondary" id="cancelEdit">取消</button>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <button class="primary" id="addNewRecordBtn">+ 新增${cfg.title}</button>
+            ${expenseBatchBtn}
           </div>
-        </form>
+        </div>
       </div>
 
       ${isWork?invoiceToolsHTML():""}
@@ -1977,37 +2120,15 @@ async function bootASCoatingSystem(){
           ${workFilters}
         </div>
 
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                ${isWork?`
-                  <th>日期</th><th>車牌</th><th>車主/車款</th><th>廠商／請款對象</th><th>施工項目及金額</th>
-                  <th>總額</th><th>收款狀態</th><th>收款方式</th><th>操作</th>
-                `:m==="advances"?`
-                  <th>代墊日期</th><th>代墊項目</th><th>代墊金額</th><th>代墊對象</th><th>處理狀態</th><th>備註</th><th>操作</th>
-                `:m==="expenses"?`
-                  <th>支出日期</th><th>支出類別／項目</th><th>項目備註說明</th><th>支出金額</th><th>廠商／對象</th><th>付款方式</th><th>付款狀態</th><th>付款日期</th><th>備註</th><th>操作</th>
-                `:m==="landlord"?`
-                  <th>日期</th><th>款項方向</th><th>項目類別</th><th>項目說明</th><th>原始金額</th><th>負擔比例(%)</th><th>負擔金額</th><th>備註</th><th>操作</th>
-                `:m==="goals"?`
-                  <th>目標月份</th><th>月營收目標</th><th>上班天數</th><th>操作</th>
-                `:`
-                  ${cols.map(f=>`<th>${f.label}</th>`).join("")}
-                  <th>操作</th>
-                `}
-              </tr>
-            </thead>
-            <tbody>
-              ${tableRows||`<tr><td colspan="${isWork?9:cols.length+1}" class="empty">目前沒有符合條件的資料</td></tr>`}
-            </tbody>
-          </table>
-        </div>
-        <div class="note">目前顯示 ${monthName(dashboardMonth)} 共 ${list.length} 筆資料</div>
+        ${renderCards(m, list)}
+
+        <div class="note" style="margin-top:16px;">目前顯示 ${monthName(dashboardMonth)} 共 ${list.length} 筆資料</div>
       </div>
     `;
 
     bindBack();
+
+    $("addNewRecordBtn").onclick = () => openModal(m);
 
     const mmp = $("moduleMonthPicker");
     if(mmp){
@@ -2069,12 +2190,6 @@ async function bootASCoatingSystem(){
       }
     }
 
-    $("recordForm").onsubmit=save;
-    $("cancelEdit").onclick=()=>{
-      editing=null;
-      renderModule(m);
-    };
-
     $("searchInput").oninput=e=>{
       search=e.target.value;
       const pos=e.target.selectionStart;
@@ -2083,70 +2198,7 @@ async function bootASCoatingSystem(){
       $("searchInput").setSelectionRange(pos,pos);
     };
 
-    document.querySelectorAll(".inline-save-btn").forEach(btn=>{
-      btn.onclick=async(e)=>{
-        const id=e.target.dataset.id;
-        const mod=e.target.dataset.module;
-        const row=e.target.closest("tr");
-        if(!row)return;
-
-        let updatedData={};
-        row.querySelectorAll("input, select, textarea").forEach(inp=>{
-          const f=inp.dataset.field;
-          if(!f)return;
-          let val=inp.value;
-          if(f==="amount" || f==="target" || f==="workdays" || f==="share") val=val===""?"":Number(val||0);
-          if(updatedData[f] === undefined || (updatedData[f] !== "" && val !== "")) {
-            updatedData[f]=val;
-          }
-        });
-
-        if(mod==="advances" && isASPerson(updatedData.person)) updatedData.person="AS-奧迪";
-        if(mod==="expenses" && isASPerson(updatedData.payee)) updatedData.payee="AS-奧迪";
-        if(mod==="work" && isASPerson(updatedData.vendorName)) updatedData.vendorName="AS-奧迪";
-
-        try{
-          let targetRecord=records.find(r=>r.id===id)||{};
-          let merged={...targetRecord,...updatedData};
-
-          if(guest()){
-            let list=guestRead(mod).map(r=>r.id===id?merged:r);
-            guestWrite(mod,list);
-          }else{
-            await updateDoc(doc(col(mod),id),{...merged,updatedAt:serverTimestamp()});
-          }
-
-          if(mod==="advances") await syncAdvanceToLandlord(merged,id);
-          if(mod==="expenses") {
-            const linked=await syncExpenseToLandlord(merged,id);
-            if(linked && !merged.landlordLinkId){
-              if(guest())guestWrite("expenses",guestRead("expenses").map(r=>r.id===id?{...r,landlordLinkId:linked}:r));
-              else await updateDoc(doc(col("expenses"),id),{landlordLinkId:linked});
-            }
-          }
-          if(mod==="work" && isASPerson(merged.vendorName)){
-            const linked=await syncWorkToLandlord(merged,id);
-            if(linked && !merged.landlordLinkId){
-              if(guest())guestWrite("work",guestRead("work").map(r=>r.id===id?{...r,landlordLinkId:linked}:r));
-              else await updateDoc(doc(col("work"),id),{landlordLinkId:linked});
-            }
-          }
-          if(mod==="landlord"){
-            await syncLandlordToExpenseOrAdvance(merged, id);
-          }
-
-          records=await read(mod);
-          await allData();
-          renderModule(mod);
-          toast("資料已成功儲存並同步更新！");
-        }catch(err){
-          toast("儲存失敗："+err.message);
-        }
-      };
-    });
-
     if(isWork){
-      bindWorkItems();
       const pf=$("paymentFilter");
       if(pf)pf.onchange=e=>{
         paymentFilter=e.target.value;
@@ -2161,20 +2213,28 @@ async function bootASCoatingSystem(){
         $("vendorSearch").setSelectionRange(pos,pos);
       };
       bindInvoiceTools();
-    }else{
-      bindVendorDuals();
-      document.querySelectorAll(".inline-vendor-select").forEach(sel=>{
-        const targetId = sel.dataset.targetInput;
-        const inp = $(targetId);
-        if(!inp)return;
-        sel.onchange = () => {
-          if(sel.value === "CUSTOM_INPUT"){
-            inp.classList.remove("hidden");
-            inp.focus();
-            inp.value = "";
-          } else {
-            inp.classList.add("hidden");
-            inp.value = sel.value;
+
+      document.querySelectorAll("[data-toggle-status]").forEach(btn => {
+        btn.onclick = async () => {
+          const id = btn.dataset.toggleStatus;
+          const nextStatus = btn.dataset.next;
+          try {
+            let targetRecord = records.find(r => r.id === id) || {};
+            let merged = {...targetRecord, paymentStatus: nextStatus};
+
+            if(guest()){
+              let list = guestRead("work").map(r => r.id === id ? merged : r);
+              guestWrite("work", list);
+            } else {
+              await updateDoc(doc(col("work"), id), {paymentStatus: nextStatus, updatedAt: serverTimestamp()});
+            }
+
+            records = await read("work");
+            await allData();
+            renderModule("work");
+            toast(`狀態已切換為：${nextStatus}`);
+          } catch(err) {
+            toast("狀態切換失敗：" + err.message);
           }
         };
       });
@@ -2182,58 +2242,12 @@ async function bootASCoatingSystem(){
 
     if(m==="landlord")bindLandlord();
 
-    if(m==="expenses"){
-      const form=$("recordForm");
-      const category=form?.elements.category;
-      const item=form?.elements.item;
-      const paidSelect=form?.elements.paid;
-      const paidDateInput=form?.elements.paidDate;
-
-      const applyExpenseItem=()=>{
-        if(!category||!item)return;
-        if(category.value && category.value !== "其他"){
-          if(!item.value || EXPENSE_CATEGORIES.includes(item.value)){
-            item.value = category.value;
-          }
-        } else if(category.value === "其他") {
-          if(item.value === "其他") item.value = "";
-        }
-      };
-
-      const handlePaidStatusChange=()=>{
-        if(!paidSelect||!paidDateInput)return;
-        const isPaid = paidSelect.value === "已完成付款" || paidSelect.value === true;
-        if(isPaid){
-          paidDateInput.disabled = false;
-          if(!paidDateInput.value) paidDateInput.value = today();
-        }else{
-          paidDateInput.value = "";
-          paidDateInput.disabled = true;
-        }
-      };
-
-      category?.addEventListener("change",applyExpenseItem);
-      paidSelect?.addEventListener("change",handlePaidStatusChange);
-      
-      document.querySelectorAll(".inline-exp-category").forEach(sel=>{
-        sel.onchange = e => {
-          const row = sel.closest("tr");
-          const itemInp = row?.querySelector('[data-field="item"]');
-          if(itemInp && sel.value !== "Other" && sel.value !== "其他") {
-            itemInp.value = sel.value;
-          }
-        };
-      });
-
-      handlePaidStatusChange();
-    }
-
     document.querySelectorAll("[data-edit]").forEach(b=>{
-      b.onclick=()=>edit(m,b.dataset.edit);
+      b.onclick=()=>openModal(m, b.dataset.edit);
     });
 
     document.querySelectorAll("[data-delete]").forEach(b=>{
-      b.onclick=()=>remove(m,b.dataset.delete);
+      b.onclick=()=>remove(m, b.dataset.delete);
     });
   }
 
@@ -2407,35 +2421,6 @@ async function bootASCoatingSystem(){
     };
     const genBtn=$("generateStatementBtn");
     if(genBtn)genBtn.onclick=generateLandlordStatement;
-
-    const form=$("recordForm");
-    if(!form)return;
-    const category=form.elements.category;
-    const share=form.elements.share;
-    const item=form.elements.item;
-
-    if(category){
-      category.onchange=()=>{
-        if(category.value==="水費" && share) share.value=50;
-        else if(category.value==="電費" && share) share.value=40;
-        else if(share && !share.dataset.userChanged) share.value="";
-
-        if(item && (!item.dataset || !item.dataset.customInput)){
-          item.value = category.value || "";
-        }
-      };
-    }
-
-    if(share){
-      share.oninput=()=>share.dataset.userChanged="1";
-    }
-
-    if(item){
-      item.oninput=()=>{
-        if(!item.dataset) item.dataset = {};
-        item.dataset.customInput = item.value.trim() !== "" ? "1" : "";
-      };
-    }
   }
 
   async function upsertLinkedLandlord(linkId,data){
@@ -2509,7 +2494,6 @@ async function bootASCoatingSystem(){
     const itemText = landlordData.item || landlordData.category || "";
     const isAdvance = landlordData.direction === "AS-奧迪應付 AS COATING" || itemText.includes("代墊") || (landlordData.note || "").includes("代墊");
     const linkId = landlordData.linkedRecordId || ("target_link_" + landlordId);
-
     const finalAmount = Number(landlordData.amount || 0);
 
     if(isAdvance){
@@ -2560,20 +2544,9 @@ async function bootASCoatingSystem(){
     const month = dashboardMonth;
     const list = records.filter(r => isMonth(r, month));
 
-    const deductionItems = list.filter(r => 
-      r.direction === "AS COATING 應付 AS-奧迪"
-    );
-
-    const workItems = list.filter(r => 
-      r.sourceType === "work" || 
-      r.category === "AS-奧迪委託施工" || 
-      (r.id && String(r.id).startsWith("work_link_"))
-    );
-
-    const advanceItems = list.filter(r => 
-      r.direction === "AS-奧迪應付 AS COATING" && 
-      !workItems.includes(r)
-    );
+    const deductionItems = list.filter(r => r.direction === "AS COATING 應付 AS-奧迪");
+    const workItems = list.filter(r => r.sourceType === "work" || r.category === "AS-奧迪委託施工" || (r.id && String(r.id).startsWith("work_link_")));
+    const advanceItems = list.filter(r => r.direction === "AS-奧迪應付 AS COATING" && !workItems.includes(r));
 
     const calcSubtotal = (arr) => sum(arr, r => landlordEffectiveAmount(r));
 
@@ -2596,7 +2569,6 @@ async function bootASCoatingSystem(){
                   let carColor = r.carColor || "—";
                   let plate = r.plate || "—";
                   let itemStr = r.item || "";
-
                   if(r.linkedRecordId) {
                     const workRec = (guest() ? guestRead("work") : records).find(x => x.id === r.linkedRecordId);
                     if(workRec) {
@@ -2608,7 +2580,6 @@ async function bootASCoatingSystem(){
                       }
                     }
                   }
-
                   return `
                     <tr>
                       <td>${safe(r.date)}</td>
@@ -2677,15 +2648,40 @@ async function bootASCoatingSystem(){
     container.scrollIntoView({behavior:"smooth", block:"start"});
   }
 
-  async function save(e){
-    e.preventDefault();
-    const m=page;
-    const form=e.target;
+  async function saveRecord(m, recordId, form){
     let data={};
 
     if(m==="work"){
-      bindWorkItems();
-      data = getWorkData(form);
+      const selected=[];
+      document.querySelectorAll(".work-item-check:checked").forEach(c=>{
+        const p=document.querySelector(`[data-price="${CSS.escape(c.dataset.item)}"]`);
+        const item={
+          name:c.dataset.item==="other_custom"||c.dataset.item==="其他施工"?"other_custom":c.dataset.item,
+          price:Number(p?.value||0)
+        };
+        if(c.dataset.item==="其他施工"){
+          item.customName=form.elements.otherWorkName.value.trim();
+        }
+        selected.push(item);
+      });
+
+      const f=form.elements;
+      data = {
+        date:f.date.value,
+        plate:f.plate.value.trim(),
+        owner:f.owner.value.trim(),
+        car:f.car.value.trim(),
+        carColor:f.carColor.value.trim(),
+        vendorName:f.vendorName.value.trim(),
+        items:selected,
+        amount:Number(f.amount.value||0),
+        paymentStatus:f.paymentStatus.value,
+        paymentMethod:f.paymentMethod.value,
+        transferLast5:f.paymentMethod==="匯款" ? f.transferLast5.value.trim() : "",
+        transferDate:f.paymentMethod==="匯款" ? f.transferDate.value : "",
+        note:f.note.value.trim()
+      };
+
       if(data.amount<0){
         toast("施工總金額不可為負數。");
         return;
@@ -2713,11 +2709,11 @@ async function bootASCoatingSystem(){
     }
 
     try{
-      let savedId=editing;
+      let savedId=recordId;
       if(guest()){
         let list=guestRead(m);
-        if(editing){
-          list=list.map(r=>r.id===editing?{...r,...data}:r);
+        if(recordId){
+          list=list.map(r=>r.id===recordId?{...r,...data}:r);
         }else{
           savedId="guest_"+Date.now();
           list.push({id:savedId,...data});
@@ -2725,12 +2721,8 @@ async function bootASCoatingSystem(){
         guestWrite(m,list);
       }else{
         const c=col(m);
-        if(editing && !records.some(r=>r.id===editing)){
-          editing = null;
-        }
-
-        if(editing){
-          await updateDoc(doc(c,editing),{...data,updatedAt:serverTimestamp()});
+        if(recordId){
+          await updateDoc(doc(c,recordId),{...data,updatedAt:serverTimestamp()});
         }else{
           const ref=await addDoc(c,{...data,createdAt:serverTimestamp()});
           savedId=ref.id;
@@ -2758,7 +2750,7 @@ async function bootASCoatingSystem(){
         await syncLandlordToExpenseOrAdvance(data, savedId);
       }
 
-      editing=null;
+      closeModal();
       records=await read(m);
       await allData();
       renderModule(m);
@@ -2766,11 +2758,6 @@ async function bootASCoatingSystem(){
     }catch(e){
       toast("儲存失敗："+e.message);
     }
-  }
-
-  async function edit(m,id){
-    editing=id;
-    renderModule(m);
   }
 
   async function remove(m,id){
