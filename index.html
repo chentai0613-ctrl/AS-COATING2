@@ -732,8 +732,8 @@ async function bootASCoatingSystem(){
 
   /* 汽車美容施工項目（包含詳細鍍膜類別選單） */
   const WORK_ITEMS=[
-    "洗車","精緻洗車","內裝清潔","內裝深層清潔","外觀美容",
-    "打蠟","漆面拋光","漆面美容",
+    "打蠟","洗車","精緻洗車","內裝清潔","內裝深層清潔","外觀美容",
+    "漆面拋光","漆面美容",
     "義大利一層鍍膜",
     "義大利二層鍍膜",
     "義大利三層鍍膜",
@@ -745,7 +745,7 @@ async function bootASCoatingSystem(){
   ];
 
   /* 工作紀錄專用廠商預設名單 */
-  const WORK_VENDORS = ["凱爾", "為班", "57", "AS", "松哥", "杜哥", "阿奇", "阿奇同事", "國豐"];
+  const WORK_VENDORS = ["凱爾", "為班", "57", "AS", "松哥", "杜哥", "阿奇", "阿奇同事"];
 
   /* 常用車主預設名單 */
   const WORK_OWNERS = ["阿淵"];
@@ -1885,13 +1885,12 @@ async function bootASCoatingSystem(){
             const nextStatus = isPaid ? "未收" : "已收";
             const nextStatusBtnText = isPaid ? "改為未收" : "改為已收";
             
-            // 強制從 r 物件讀取匯款後5碼與匯款日期
             const tLast5 = r.transferLast5 || r.transferCode || "";
             const tDate = r.transferDate || r.remitDate || "";
             const transferInfo = r.paymentMethod === "匯款" ? ` <br><span style="color:#2b5c3f; font-weight:bold;">💳 匯款資訊：後5碼 [ ${safe(tLast5||"—")} ] / 日期 [ ${safe(tDate||"—")} ]</span>` : "";
 
             return `
-              <div class="generic-card ${borderClass}" data-id="${safe(r.id)}">
+              <div class="generic-card ${borderClass}" data-id="${safe(r.id)}" data-search="${safe(searchableText(r))}">
                 <div class="card-top">
                   <div class="card-title-group">
                     <div class="card-date">${safe(r.date)}</div>
@@ -1930,7 +1929,7 @@ async function bootASCoatingSystem(){
             if(r.category === "電費") subAmtText = ` (分攤40%: ${money(amt * 0.4)})`;
 
             return `
-              <div class="generic-card ${isPaid?"":"border-red"}" data-id="${safe(r.id)}">
+              <div class="generic-card ${isPaid?"":"border-red"}" data-id="${safe(r.id)}" data-search="${safe(searchableText(r))}">
                 <div class="card-top">
                   <div class="card-title-group">
                     <div class="card-date">${safe(r.date)}</div>
@@ -1963,7 +1962,7 @@ async function bootASCoatingSystem(){
             const badgeClass = isCollected ? "badge-green" : "badge-orange";
 
             return `
-              <div class="generic-card ${isCollected?"":"border-orange"}" data-id="${safe(r.id)}">
+              <div class="generic-card ${isCollected?"":"border-orange"}" data-id="${safe(r.id)}" data-search="${safe(searchableText(r))}">
                 <div class="card-top">
                   <div class="card-title-group">
                     <div class="card-date">${safe(r.date)}</div>
@@ -1994,7 +1993,7 @@ async function bootASCoatingSystem(){
             const effAmt = landlordEffectiveAmount(r);
 
             return `
-              <div class="generic-card ${borderClass}" data-id="${safe(r.id)}">
+              <div class="generic-card ${borderClass}" data-id="${safe(r.id)}" data-search="${safe(searchableText(r))}">
                 <div class="card-top">
                   <div class="card-title-group">
                     <div class="card-date">${safe(r.date)}</div>
@@ -2025,7 +2024,7 @@ async function bootASCoatingSystem(){
             const avgRev = workdays > 0 ? money(targetAmt / workdays) : "—";
 
             return `
-              <div class="generic-card border-purple" data-id="${safe(r.id)}">
+              <div class="generic-card border-purple" data-id="${safe(r.id)}" data-search="${safe(searchableText(r))}">
                 <div class="card-top">
                   <div class="card-title-group">
                     <div class="card-date">目標月份</div>
@@ -2080,7 +2079,6 @@ async function bootASCoatingSystem(){
       return String(dateVal).slice(0,7) === dashboardMonth;
     });
 
-    list=list.filter(r=>searchWords(searchableText(r),search));
     if(m==="work"){
       if(vendorFilter){
         list=list.filter(r=>(r.vendorName||"")===vendorFilter);
@@ -2096,6 +2094,19 @@ async function bootASCoatingSystem(){
       }
     }
     return list.sort((a,b)=>String(b.date||b.month||"").localeCompare(String(a.date||a.month||"")));
+  }
+
+  function applyDOMFilter(){
+    const query = $("searchInput") ? $("searchInput").value : "";
+    const cards = document.querySelectorAll(".generic-card");
+    cards.forEach(card => {
+      const text = card.dataset.search || "";
+      if(searchWords(text, query)){
+        card.classList.remove("hidden");
+      } else {
+        card.classList.add("hidden");
+      }
+    });
   }
 
   function renderModule(m){
@@ -2144,7 +2155,7 @@ async function bootASCoatingSystem(){
 
       <div class="panel">
         <div class="toolbar">
-          <input id="searchInput" placeholder="${isWork?"可輸入車牌、車主、車款、廠商、施工項目等多個關鍵字":"輸入多個關鍵字交叉搜尋"}" value="${safe(search)}">
+          <input id="searchInput" placeholder="${isWork?"可輸入車牌、車主、車款、廠商、施工項目、付款方式等關鍵字":"輸入多個關鍵字交叉搜尋"}" value="${safe(search)}">
           ${workFilters}
         </div>
 
@@ -2218,13 +2229,16 @@ async function bootASCoatingSystem(){
       }
     }
 
-    $("searchInput").oninput=e=>{
-      search=e.target.value;
-      const pos=e.target.selectionStart;
-      renderModule(m);
-      $("searchInput").focus();
-      $("searchInput").setSelectionRange(pos,pos);
-    };
+    // 解決中文輸入法組字中斷問題：改用純 DOM 顯示隱藏過濾，不重新渲染整頁
+    const searchInputEl = $("searchInput");
+    if(searchInputEl){
+      searchInputEl.value = search;
+      applyDOMFilter(); // 初始化過濾狀態
+      searchInputEl.oninput = e => {
+        search = e.target.value;
+        applyDOMFilter();
+      };
+    }
 
     if(isWork){
       const pf=$("paymentFilter");
@@ -2694,7 +2708,6 @@ async function bootASCoatingSystem(){
       });
 
       const f=form.elements;
-      // 強制透過獨立 ID 絕對抓到最新輸入的值
       const tLast5Val = document.getElementById("transferLast5Input") ? document.getElementById("transferLast5Input").value.trim() : (f.transferLast5 ? f.transferLast5.value.trim() : "");
       const tDateVal = document.getElementById("transferDateInput") ? document.getElementById("transferDateInput").value : (f.transferDate ? f.transferDate.value : "");
 
@@ -2714,7 +2727,6 @@ async function bootASCoatingSystem(){
         note:f.note.value.trim()
       };
       
-      // 確保即使變數宣告順序也絕對能寫入
       data.transferLast5 = (f.paymentMethod.value === "匯款") ? tLast5Val : "";
       data.transferDate = (f.paymentMethod.value === "匯款") ? tDateVal : "";
 
