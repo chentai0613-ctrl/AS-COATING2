@@ -490,89 +490,107 @@ th{background:#fafaf8;color:var(--muted);font-size:12px}
   .item-list{grid-template-columns:1fr}
 }
 
-/* 專業正式報表與列印專用樣式 */
+/* 專業正式報表與 A4 列印專用樣式（修正滑頁與表格撐開問題） */
 .print-header{display:none}
 .print-footer{display:none}
 
 @media print{
-  body{background:white!important;color:#000!important}
-  .topbar, .sidebar, .no-print, #loginPage, #toast, .month-picker, .toolbar, .actions, form, .page-top, #editPanel, .modal-overlay{
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm 10mm 12mm;
+  }
+  body{background:white!important;color:#000!important;font-size:9.5pt!important}
+  .topbar, .sidebar, .no-print, #loginPage, #toast, .month-picker, .toolbar, .actions, form, .page-top, #editPanel, .modal-overlay, .panel-head button{
     display:none!important;
   }
-  .layout{display:block!important;min-height:0!important}
+  .layout{display:block!important;min-height:0!important;width:100%!important}
   .main{padding:0!important;margin:0!important;width:100%!important}
+  
   #printableProfitReport, #invoicePrint, .panel{
     display:block!important;
     box-shadow:none!important;
     border:0!important;
-    padding:4px 0!important;
-    margin:0 0 15px 0!important;
+    padding:0!important;
+    margin:0 0 10px 0!important;
     background:white!important;
+    page-break-inside: avoid;
+    width: 100% !important;
   }
+  
   .print-header{
     display:block!important;
     text-align:center;
-    margin-bottom:15px;
-    border-bottom:2px solid #000;
-    padding-bottom:10px;
+    margin-bottom:10px;
+    border-bottom:2px solid #222;
+    padding-bottom:6px;
   }
-  .print-header h1{font-size:20pt;font-weight:900;margin:0 0 4px;letter-spacing:2px}
-  .print-header .print-subtitle{font-size:11pt;font-weight:bold;color:#333;margin-bottom:4px}
-  .print-header .print-meta{font-size:10pt;color:#444;display:flex;justify-content:space-between;margin-top:8px}
-  .profit-summary{
+  .print-header h1{font-size:16pt;font-weight:900;margin:0 0 2px;letter-spacing:2px}
+  .print-header .print-subtitle{font-size:10pt;font-weight:bold;color:#333;margin-bottom:3px}
+  .print-header .print-meta{font-size:9pt;color:#444;display:flex;justify-content:space-between;margin-top:4px}
+  
+  .summary-grid{
     display:flex!important;
     justify-content:space-between!important;
-    gap:10px!important;
-    margin-bottom:15px!important;
+    gap:8px!important;
+    margin-bottom:10px!important;
+    width: 100% !important;
   }
-  .profit-card{
+  .summary-card{
     flex:1!important;
-    border:1px solid #444!important;
+    border:1px solid #bbb!important;
     background:#fafafa!important;
-    padding:10px!important;
-    border-radius:0!important;
+    padding:6px 8px!important;
+    border-radius:4px!important;
+    text-align:center;
   }
-  .profit-card .value{font-size:16pt!important}
+  .summary-card b{font-size:13pt!important;margin-top:2px}
+
+  .table-wrap{
+    width: 100% !important;
+    overflow: visible !important;
+  }
   table{
     width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
     border-collapse:collapse!important;
-    margin-top:8px!important;
+    margin-top:4px!important;
+    table-layout: fixed !important;
   }
+  tr { page-break-inside: avoid; page-break-after: auto; }
+  thead { display: table-header-group; }
+  
   th, td{
-    border:1px solid #333!important;
-    padding:7px 5px!important;
-    font-size:9.5pt!important;
+    border:1px solid #444!important;
+    padding:5px 6px!important;
+    font-size:8.5pt!important;
     color:#000!important;
     background:transparent!important;
+    overflow-wrap: anywhere !important;
+    word-break: break-all !important;
   }
   th{
-    background:#e8e8e8!important;
+    background:#eef2ef!important;
     font-weight:bold!important;
     text-align:center!important;
   }
-  .report-total, .total-box{
-    background:#f0f0f0!important;
-    border:1px solid #333!important;
-    border-top:0!important;
-    padding:8px 12px!important;
-    text-align:right!important;
-    font-size:11pt!important;
-  }
-  .report-total strong{font-size:14pt!important}
+  
   .print-footer{
     display:flex!important;
     justify-content:space-between;
-    margin-top:35px;
-    padding-top:10px;
-    border-top:1px solid #ccc;
-    font-size:11pt;
+    margin-top:25px;
+    padding-top:6px;
+    border-top:1px solid #aaa;
+    font-size:9.5pt;
+    page-break-inside: avoid;
+    width: 100% !important;
   }
   .print-sign-box{
     width:42%;
     text-align:center;
   }
   .print-sign-line{
-    margin-top:30px;
+    margin-top:20px;
     border-bottom:1px solid #000;
   }
 }
@@ -734,6 +752,7 @@ async function bootASCoatingSystem(){
   const WORK_ITEMS=[
     "打蠟","洗車","貼膜前置-打蠟","貼膜前置-鍍膜","貼膜後置-鍍膜","精緻洗車","內裝清潔","內裝深層清潔","外觀美容",
     "漆面拋光","漆面美容",
+    "鍍膜",
     "義大利一層鍍膜",
     "義大利二層鍍膜",
     "義大利三層鍍膜",
@@ -745,7 +764,7 @@ async function bootASCoatingSystem(){
   ];
 
   /* 工作紀錄專用廠商預設名單 */
-  const WORK_VENDORS = ["凱爾", "為班", "57", "AS", "松哥", "杜哥", "阿奇", "阿奇同事"];
+  const WORK_VENDORS = ["凱爾", "為班", "57", "AS", "松哥", "杜哥", "阿奇", "阿奇同事", "國豐"];
 
   /* 常用車主預設名單 */
   const WORK_OWNERS = ["阿淵"];
@@ -2229,11 +2248,10 @@ async function bootASCoatingSystem(){
       }
     }
 
-    // 解決中文輸入法組字中斷問題：改用純 DOM 顯示隱藏過濾，不重新渲染整頁
     const searchInputEl = $("searchInput");
     if(searchInputEl){
       searchInputEl.value = search;
-      applyDOMFilter(); // 初始化過濾狀態
+      applyDOMFilter();
       searchInputEl.oninput = e => {
         search = e.target.value;
         applyDOMFilter();
@@ -2246,14 +2264,26 @@ async function bootASCoatingSystem(){
         paymentFilter=e.target.value;
         renderModule(m);
       };
+      
+      /* 修正廠商名稱篩選打中文會跳掉的問題：改用即時過濾，不重新渲染整頁 */
       const vs=$("vendorSearch");
-      if(vs)vs.oninput=e=>{
-        vendorFilter=e.target.value.trim();
-        const pos=e.target.selectionStart;
-        renderModule(m);
-        $("vendorSearch").focus();
-        $("vendorSearch").setSelectionRange(pos,pos);
-      };
+      if(vs){
+        vs.value = vendorFilter;
+        vs.oninput = e => {
+          vendorFilter = e.target.value.trim();
+          const q = vendorFilter.toLowerCase();
+          const cards = document.querySelectorAll(".generic-card");
+          cards.forEach(card => {
+            const text = card.dataset.search || "";
+            if(!q || text.toLowerCase().includes(q)){
+              card.classList.remove("hidden");
+            } else {
+              card.classList.add("hidden");
+            }
+          });
+        };
+      }
+
       bindInvoiceTools();
 
       document.querySelectorAll("[data-toggle-status]").forEach(btn => {
@@ -2313,7 +2343,7 @@ async function bootASCoatingSystem(){
         </div>
         <div class="actions">
           <button class="primary" id="makeInvoice">產生請款單</button>
-          <button class="secondary" id="printInvoice">🖨️ 列印正式請款單／另存 PDF</button>
+          <button class="secondary" id="printInvoice">🖨️ 列印 A4 精美請款單／另存 PDF</button>
         </div>
       </div>
       <div id="invoiceResult"></div>
@@ -2339,6 +2369,7 @@ async function bootASCoatingSystem(){
       makeInvoice();
       setTimeout(()=>window.print(),150);
     };
+    setTimeout(makeInvoice, 50);
   }
 
   function makeInvoice(){
@@ -2358,7 +2389,7 @@ async function bootASCoatingSystem(){
       <div class="panel" id="invoicePrint">
         <div class="print-header">
           <h1>AS COATING</h1>
-          <div class="print-subtitle">廠商施工請款明細對帳單</div>
+          <div class="print-subtitle">廠商施工請款明細對帳單 (Statement of Account)</div>
           <div class="print-meta">
             <span>請款月份：${safe(monthName(month))}</span>
             <span>請款對象：${safe(vendor||"全部廠商")}</span>
@@ -2366,42 +2397,53 @@ async function bootASCoatingSystem(){
           </div>
         </div>
 
-        <h2 class="no-print">AS COATING｜施工請款明細</h2>
-        <div class="note no-print">請款月份：${safe(monthName(month))} 請款對象：${safe(vendor||"全部廠商")}</div>
+        <h3 class="no-print" style="margin-bottom:12px;">📄 產生之請款單預覽（支援 A4 排版列印）</h3>
         
-        <div class="summary-grid">
-          <div class="summary-card">本月請款總額<b class="invoice-total">${money(total)}</b></div>
-          <div class="summary-card">已收金額<b class="green-text">${money(paidTotal)}</b></div>
-          <div class="summary-card">未收／月結<b class="red-text">${money(unpaidTotal)}</b></div>
+        <div class="summary-grid" style="margin-bottom:16px;">
+          <div class="summary-card">本月請款總額<b class="invoice-total" style="font-size:18px;">${money(total)}</b></div>
+          <div class="summary-card">已收金額<b class="green-text" style="font-size:18px;">${money(paidTotal)}</b></div>
+          <div class="summary-card">未收／月結<b class="red-text" style="font-size:18px;">${money(unpaidTotal)}</b></div>
         </div>
 
         <div class="table-wrap">
           <table>
             <thead>
-              <tr><th>日期</th><th>車牌</th><th>車主</th><th>車款</th><th>施工項目</th><th>金額</th><th>收款狀態</th></tr>
+              <tr>
+                <th style="width:14%;">施工日期</th>
+                <th style="width:12%;">車牌</th>
+                <th style="width:12%;">車主</th>
+                <th style="width:10%;">車款</th>
+                <th style="width:30%;">施工項目與細節</th>
+                <th style="width:12%;">金額</th>
+                <th style="width:10%;">狀態</th>
+              </tr>
             </thead>
             <tbody>
               ${list.map(r=>`
                 <tr>
-                  <td>${safe(r.date)}</td><td>${safe(r.plate)}</td><td>${safe(r.owner||"—")}</td><td>${safe(r.car||"—")}</td>
+                  <td>${safe(r.date)}</td>
+                  <td><b>${safe(r.plate)}</b></td>
+                  <td>${safe(r.owner||"—")}</td>
+                  <td>${safe(r.car||"—")}</td>
                   <td>${(r.items||[]).map(x=>{
                     const n=x.name==="other_custom"||x.name==="other施工"?(x.customName||"other施工"):x.name;
-                    return safe(n)+" "+money(x.price);
+                    return safe(n)+(x.price?` ($${Number(x.price).toLocaleString()})`:"");
                   }).join("<br>")}</td>
-                  <td>${money(r.amount)}</td><td>${safe(r.paymentStatus)}</td>
+                  <td><b>${money(r.amount)}</b></td>
+                  <td>${safe(r.paymentStatus)}</td>
                 </tr>
-              `).join("")||`<tr><td colspan="7" class="empty">這個月份沒有請款資料</td></tr>`}
+              `).join("")||`<tr><td colspan="7" class="empty">這個月份沒有符合條件的請款資料</td></tr>`}
             </tbody>
           </table>
         </div>
 
-        <div style="text-align:right;margin-top:20px;font-size:16px;font-weight:bold">
-          請款總額：<span class="invoice-total">${money(total)}</span>
+        <div style="text-align:right;margin-top:16px;font-size:16px;font-weight:bold;padding-right:4px;">
+          請款總金額：<span class="invoice-total">${money(total)}</span>
         </div>
 
         <div class="print-footer">
           <div class="print-sign-box">AS COATING 經手人：<div class="print-sign-line"></div></div>
-          <div class="print-sign-box">客戶／廠商簽收：<div class="print-sign-line"></div></div>
+          <div class="print-sign-box">廠商／客戶簽收：<div class="print-sign-line"></div></div>
         </div>
       </div>
     `;
