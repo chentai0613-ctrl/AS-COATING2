@@ -276,7 +276,7 @@ textarea{min-height:75px;resize:vertical}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
 
 /* ========================================================
-   全模組統一：卡片式清單（電腦版單直欄垂直排列、手機版滿版）
+   全模組統一：卡片式清單
    ======================================================== */
 .records-cards-grid {
   display: flex;
@@ -350,8 +350,8 @@ textarea{min-height:75px;resize:vertical}
 
 .card-body-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 16px;
   font-size: 13.5px;
   color: #4a564f;
   margin: 12px 0;
@@ -359,6 +359,17 @@ textarea{min-height:75px;resize:vertical}
   border-top: 1px solid #f2f0eb;
   border-bottom: 1px solid #f2f0eb;
 }
+@media(max-width:900px){
+  .card-body-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media(max-width:500px){
+  .card-body-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .card-item {
   display: flex;
   gap: 6px;
@@ -366,6 +377,7 @@ textarea{min-height:75px;resize:vertical}
 }
 .card-item span.label {
   color: var(--muted);
+  white-space: nowrap;
 }
 .card-note {
   font-size: 12.5px;
@@ -721,8 +733,7 @@ async function bootASCoatingSystem(){
   /* 汽車美容施工項目（包含詳細鍍膜類別選單） */
   const WORK_ITEMS=[
     "洗車","精緻洗車","內裝清潔","內裝深層清潔","外觀美容",
-    "漆面拋光","漆面美容","打蠟",
-    "鍍膜",
+    "打蠟","漆面拋光","漆面美容",
     "義大利一層鍍膜",
     "義大利二層鍍膜",
     "義大利三層鍍膜",
@@ -734,7 +745,7 @@ async function bootASCoatingSystem(){
   ];
 
   /* 工作紀錄專用廠商預設名單 */
-  const WORK_VENDORS = ["凱爾", "為班", "57", "AS", "松哥", "杜哥", "阿奇", "阿奇同事"];
+  const WORK_VENDORS = ["凱爾", "為班", "57", "AS", "松哥", "杜哥", "阿奇", "阿奇同事", "國豐"];
 
   /* 常用車主預設名單 */
   const WORK_OWNERS = ["阿淵"];
@@ -793,7 +804,7 @@ async function bootASCoatingSystem(){
       {key:"amount",label:"支出金額",type:"number",required:true},
       {key:"payee",label:"廠商／請款對象",type:"vendor_dual"},
       {key:"paymentMethod",label:"付款方式",type:"select",
-        options:["現金","匯款","信用卡","其他"]},
+        options:["現金","匯款","信用卡","other"]},
       {key:"paid",label:"付款狀態",type:"select",options:["未付款","已完成付款"]},
       {key:"paidDate",label:"付款日期",type:"date"},
       {key:"note",label:"備註",type:"textarea",full:true}
@@ -815,7 +826,7 @@ async function bootASCoatingSystem(){
         options:[
           "AS-奧迪委託施工","房屋租金","場地抵扣租金",
           "停車位費用","大樓管理費","勞健保費",
-          "水費","電費","其他"
+          "水費","電費","other"
         ]},
       {key:"item",label:"項目說明"},
       {key:"amount",label:"原始金額",type:"number",required:true},
@@ -857,8 +868,8 @@ async function bootASCoatingSystem(){
   }[c]));
 
   const getExpenseDisplayName = r => {
-    if(r.category === "其他" || r.category === "other_custom" || !r.category) {
-      return r.item ? safe(r.item) : "其他支出";
+    if(r.category === "other" || r.category === "other_custom" || !r.category) {
+      return r.item ? safe(r.item) : "other支出";
     }
     return safe(r.category);
   };
@@ -872,17 +883,17 @@ async function bootASCoatingSystem(){
     if (rate >= 100) {
       return {
         title: "🏆 超越目標，極致達標！",
-        text: `恭喜完美達成目標！目前營收已超越設定目標 ${money(Math.abs(diff))}[cite: 1]，感謝團隊的付出與堅持！`
+        text: `恭喜完美達成目標！目前營收已超越設定目標 ${money(Math.abs(diff))}，感謝團隊的付出與堅持！`
       };
     } else if (rate >= 90) {
       return {
         title: "🎉 臨門一腳，勝利在望！",
-        text: `太厲害了！進度已達到 ${rate.toFixed(1)}%，距離目標僅差 ${money(diff)}[cite: 1]，準備迎接慶祝時刻！`
+        text: `太厲害了！進度已達到 ${rate.toFixed(1)}%，距離目標僅差 ${money(diff)}，準備迎接慶祝時刻！`
       };
     } else if (rate >= 60) {
       return {
         title: "🔥 保持衝勁，繼續突破！",
-        text: `目標完成度已達 ${rate.toFixed(1)}%，距離達標還差 ${money(diff)}[cite: 1]，再接再厲衝破大關！`
+        text: `目標完成度已達 ${rate.toFixed(1)}%，距離達標還差 ${money(diff)}，再接再厲衝破大關！`
       };
     } else if (rate >= 30) {
       return {
@@ -892,7 +903,7 @@ async function bootASCoatingSystem(){
     } else {
       return {
         title: "🚀 萬事起頭難，全力以赴！",
-        text: `本月進度 ${rate.toFixed(1)}%，尚差 ${money(diff)} 達標[cite: 1]。規劃好每日排程，開啟亮眼成績！`
+        text: `本月進度 ${rate.toFixed(1)}%，尚差 ${money(diff)} 達標。規劃好每日排程，開啟亮眼成績！`
       };
     }
   }
@@ -1086,9 +1097,9 @@ async function bootASCoatingSystem(){
     const goalDiff = target - rev;
     const motivation = getMotivationMessage(target > 0 ? (rev / target) * 100 : 0, goalDiff);
 
-    const paymentMethodTotals = { 現金: 0, 匯款: 0, 月結: 0, 抵扣: 0, 其他: 0 };
+    const paymentMethodTotals = { 現金: 0, 匯款: 0, 月結: 0, 抵扣: 0, other: 0 };
     mw.forEach(r => {
-      const method = r.paymentMethod || "其他";
+      const method = r.paymentMethod || "other";
       paymentMethodTotals[method] = (paymentMethodTotals[method] || 0) + amount(r);
     });
 
@@ -1124,7 +1135,7 @@ async function bootASCoatingSystem(){
     const itemTotals={};
     mw.forEach(r=>{
       (r.items||[]).forEach(item=>{
-        const name=item.name==="other_custom"||item.name==="其他施工"?(item.customName||"Other施工"):item.name;
+        const name=item.name==="other_custom"||item.name==="other施工"?(item.customName||"Other施工"):item.name;
         itemTotals[name]=(itemTotals[name]||0)+Number(item.price||0);
       });
     });
@@ -1206,7 +1217,7 @@ async function bootASCoatingSystem(){
           <div class="summary-card">現金總額<b class="green-text">${money(paymentMethodTotals["現金"])}</b></div>
           <div class="summary-card">匯款總額<b class="blue-text">${money(paymentMethodTotals["匯款"])}</b></div>
           <div class="summary-card">月結總額<b class="orange-text">${money(paymentMethodTotals["月結"])}</b></div>
-          <div class="summary-card">抵扣／其他<b class="purple-text">${money(paymentMethodTotals["抵扣"] + paymentMethodTotals["其他"])}</b></div>
+          <div class="summary-card">抵扣／other<b class="purple-text">${money(paymentMethodTotals["抵扣"] + paymentMethodTotals["other"])}</b></div>
         </div>
       </div>
 
@@ -1383,7 +1394,7 @@ async function bootASCoatingSystem(){
 
     const workHTML=workRows.map(r=>{
       const items=(r.items||[]).map(x=>{
-        const name=x.name==="other_custom"||x.name==="其他施工"?(x.customName||"Other施工"):x.name;
+        const name=x.name==="other_custom"||x.name==="other施工"?(x.customName||"Other施工"):x.name;
         return safe(name);
       }).join("、")||"—";
 
@@ -1532,7 +1543,7 @@ async function bootASCoatingSystem(){
   function recordFormHTML(m, r={}){
     if(m==="work"){
       const selected=Array.isArray(r.items)?r.items:[];
-      const other=selected.find(x=>x.name==="other_custom"||x.name==="其他施工");
+      const other=selected.find(x=>x.name==="other_custom"||x.name==="other施工");
       const itemRows=WORK_ITEMS.map(name=>{
         const found=selected.find(x=>x.name===name);
         return `
@@ -1551,6 +1562,8 @@ async function bootASCoatingSystem(){
       const ownerVal = r.owner || "";
       const isOwnerPreset = WORK_OWNERS.includes(ownerVal);
       const ownerSelectVal = ownerVal === "" ? "" : (isOwnerPreset ? ownerVal : "CUSTOM_INPUT");
+
+      const currentPaymentMethod = r.paymentMethod || "現金";
 
       return `
         <div class="grid">
@@ -1609,20 +1622,27 @@ async function bootASCoatingSystem(){
           <div class="field">
             <label>收款狀態</label>
             <select name="paymentStatus">
-              ${["已收","未收","月結","其他"].map(x=>`<option ${r.paymentStatus===x?"selected":""}>${x}</option>`)}
+              ${["未收","已收","月結","other"].map(x=>`<option ${r.paymentStatus===x?"selected":""}>${x}</option>`)}
             </select>
           </div>
           <div class="field">
             <label>收款方式</label>
             <select name="paymentMethod" id="workPaymentMethodSelect">
-              ${["現金","匯款","月結","抵扣"].map(x=>`<option ${r.paymentMethod===x?"selected":""}>${x}</option>`)}
+              ${["現金","匯款","月結","抵扣"].map(x=>`<option ${currentPaymentMethod===x?"selected":""}>${x}</option>`)}
             </select>
           </div>
-          <div class="field ${r.paymentMethod==="匯款"?"":"hidden"}" id="workTransferFields">
-            <label>匯款帳號後 4~5 碼</label>
-            <input name="transferLast5" maxlength="5" value="${safe(r.transferLast5||r.transferCode||"")}" placeholder="例如: 1234">
-            <label style="margin-top:6px">匯款日期</label>
-            <input name="transferDate" type="date" value="${safe(r.transferDate||r.remitDate||"")}">
+          <div class="field full ${currentPaymentMethod==="匯款"?"":"hidden"}" id="workTransferFields" style="background:#f9f8f4; padding:12px; border-radius:10px; border:1px solid var(--line);">
+            <label style="color:var(--ink); font-weight:bold; margin-bottom:4px;">💳 匯款資訊填寫</label>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:6px;">
+              <div>
+                <label style="font-size:11px; margin-bottom:3px; display:block;">匯款帳號後 4~5 碼</label>
+                <input name="transferLast5" id="transferLast5Input" maxlength="5" value="${safe(r.transferLast5||r.transferCode||"")}" placeholder="例如: 1234">
+              </div>
+              <div>
+                <label style="font-size:11px; margin-bottom:3px; display:block;">匯款日期</label>
+                <input name="transferDate" id="transferDateInput" type="date" value="${safe(r.transferDate||r.remitDate||"")}">
+              </div>
+            </div>
           </div>
           <div class="field full">
             <label>備註</label>
@@ -1687,7 +1707,7 @@ async function bootASCoatingSystem(){
         checks.forEach(c=>{
           const p=document.querySelector(`[data-price="${CSS.escape(c.dataset.item)}"]`);
           if(c.checked)total+=Number(p?.value||0);
-          if(c.dataset.item==="其他施工")otherChecked=c.checked;
+          if(c.dataset.item==="other施工")otherChecked=c.checked;
         });
         const otherField=$("otherWorkField");
         if(otherField)otherField.classList.toggle("hidden",!otherChecked);
@@ -1765,7 +1785,7 @@ async function bootASCoatingSystem(){
         const item=form?.elements.item;
         const applyExpenseItem=()=>{
           if(!category||!item)return;
-          if(category.value && category.value !== "其他"){
+          if(category.value && category.value !== "other"){
             if(!item.value || EXPENSE_CATEGORIES.includes(item.value)){
               item.value = category.value;
             }
@@ -1851,11 +1871,10 @@ async function bootASCoatingSystem(){
             const borderClass = isPaid ? "" : (isUnpaid ? "border-red" : "border-orange");
             const badgeClass = isPaid ? "badge-green" : (isUnpaid ? "badge-red" : "badge-orange");
             const itemText = (r.items||[]).map(x=>{
-              const name = x.name==="other_custom"||x.name==="其他施工" ? (x.customName||"其他施工") : x.name;
+              const name = x.name==="other_custom"||x.name==="other施工" ? (x.customName||"other施工") : x.name;
               return safe(name);
             }).join("、") || "—";
             
-            /* 若車主空白且有廠商資訊，則標題顯示廠商名稱；若兩者皆空白則顯示 (無車主) */
             let titleDisplay = "（無車主）";
             if(r.owner && r.owner.trim()){
               titleDisplay = safe(r.owner);
@@ -1865,6 +1884,11 @@ async function bootASCoatingSystem(){
 
             const nextStatus = isPaid ? "未收" : "已收";
             const nextStatusBtnText = isPaid ? "改為未收" : "改為已收";
+            
+            // 強制從 r 物件讀取匯款後5碼與匯款日期
+            const tLast5 = r.transferLast5 || r.transferCode || "";
+            const tDate = r.transferDate || r.remitDate || "";
+            const transferInfo = r.paymentMethod === "匯款" ? ` <br><span style="color:#2b5c3f; font-weight:bold;">💳 匯款資訊：後5碼 [ ${safe(tLast5||"—")} ] / 日期 [ ${safe(tDate||"—")} ]</span>` : "";
 
             return `
               <div class="generic-card ${borderClass}" data-id="${safe(r.id)}">
@@ -1882,8 +1906,9 @@ async function bootASCoatingSystem(){
                   <div class="card-item"><span class="label">車牌：</span>${safe(r.plate||"—")}</div>
                   <div class="card-item"><span class="label">車款：</span>${safe(r.car||"—")}</div>
                   <div class="card-item"><span class="label">車色：</span>${safe(r.carColor||"—")}</div>
-                  <div class="card-item"><span class="label">施工：</span>${itemText}</div>
-                  <div class="card-item" style="grid-column: 1 / -1;"><span class="label">廠商：</span>${safe(r.vendorName||"—")}</div>
+                  <div class="card-item"><span class="label">廠商：</span>${safe(r.vendorName||"—")}</div>
+                  <div class="card-item" style="grid-column: span 2;"><span class="label">付款方式：</span>${safe(r.paymentMethod||"—")}${transferInfo}</div>
+                  <div class="card-item" style="grid-column: 1 / -1;"><span class="label">施工項目：</span>${itemText}</div>
                 </div>
                 ${r.note ? `<div class="card-note">備註：${safe(r.note)}</div>` : ""}
                 <div class="card-actions">
@@ -1917,10 +1942,12 @@ async function bootASCoatingSystem(){
                   </div>
                 </div>
                 <div class="card-body-grid">
-                  <div class="card-item"><span class="label">項目：</span>${safe(r.item||"—")}${safe(subAmtText)}</div>
-                  <div class="card-item"><span class="label">對象：</span>${safe(r.payee||"—")}</div>
-                  <div class="card-item"><span class="label">付款：</span>${safe(r.paymentMethod||"—")}</div>
-                  <div class="card-item"><span class="label">付費日：</span>${safe(r.paidDate||"—")}</div>
+                  <div class="card-item"><span class="label">支出類別：</span>${safe(r.category||"—")}</div>
+                  <div class="card-item"><span class="label">項目名稱：</span>${safe(r.item||"—")}${safe(subAmtText)}</div>
+                  <div class="card-item"><span class="label">付款對象：</span>${safe(r.payee||"—")}</div>
+                  <div class="card-item"><span class="label">付款方式：</span>${safe(r.paymentMethod||"—")}</div>
+                  <div class="card-item"><span class="label">付款狀態：</span>${safe(r.paid||"未付款")}</div>
+                  <div class="card-item"><span class="label">付款日期：</span>${safe(r.paidDate||"—")}</div>
                 </div>
                 ${r.note ? `<div class="card-note">備註：${safe(r.note)}</div>` : ""}
                 <div class="card-actions">
@@ -1948,7 +1975,8 @@ async function bootASCoatingSystem(){
                   </div>
                 </div>
                 <div class="card-body-grid">
-                  <div class="card-item" style="grid-column: 1 / -1;"><span class="label">代墊對象：</span>${safe(r.person||"—")}</div>
+                  <div class="card-item"><span class="label">代墊對象：</span>${safe(r.person||"—")}</div>
+                  <div class="card-item"><span class="label">處理狀態：</span>${safe(r.status||"待收回")}</div>
                 </div>
                 ${r.note ? `<div class="card-note">備註：${safe(r.note)}</div>` : ""}
                 <div class="card-actions">
@@ -1980,7 +2008,7 @@ async function bootASCoatingSystem(){
                 <div class="card-body-grid">
                   <div class="card-item"><span class="label">項目說明：</span>${safe(r.item||"—")}</div>
                   <div class="card-item"><span class="label">原始金額：</span>${money(r.amount)}</div>
-                  <div class="card-item" style="grid-column: 1 / -1;"><span class="label">負擔比例：</span>${r.share ? r.share+"%" : "100%"}</div>
+                  <div class="card-item"><span class="label">負擔比例：</span>${r.share ? r.share+"%" : "100%"}</div>
                 </div>
                 ${r.note ? `<div class="card-note">備註：${safe(r.note)}</div>` : ""}
                 <div class="card-actions">
@@ -2034,7 +2062,7 @@ async function bootASCoatingSystem(){
 
   function searchableText(r){
     const itemText=(r.items||[]).map(x=>
-      x.name==="other_custom"||x.name==="其他施工"?(x.customName||"其他施工"):x.name
+      x.name==="other_custom"||x.name==="other施工"?(x.customName||"other施工"):x.name
     ).join(" ");
 
     return [
@@ -2293,7 +2321,7 @@ async function bootASCoatingSystem(){
     const mi=$("makeInvoice");
     if(mi)mi.onclick=makeInvoice;
     const pi=$("printInvoice");
-    if(pi)pi.onclick=()=>{
+    if(pi)pi.onclick=()=> {
       makeInvoice();
       setTimeout(()=>window.print(),150);
     };
@@ -2343,7 +2371,7 @@ async function bootASCoatingSystem(){
                 <tr>
                   <td>${safe(r.date)}</td><td>${safe(r.plate)}</td><td>${safe(r.owner||"—")}</td><td>${safe(r.car||"—")}</td>
                   <td>${(r.items||[]).map(x=>{
-                    const n=x.name==="other_custom"||x.name==="其他施工"?(x.customName||"其他施工"):x.name;
+                    const n=x.name==="other_custom"||x.name==="other施工"?(x.customName||"other施工"):x.name;
                     return safe(n)+" "+money(x.price);
                   }).join("<br>")}</td>
                   <td>${money(r.amount)}</td><td>${safe(r.paymentStatus)}</td>
@@ -2456,7 +2484,7 @@ async function bootASCoatingSystem(){
     const isAS=isASPerson(workData.vendorName);
     const linkId=workData.landlordLinkId||("work_link_"+workId);
     if(!isAS)return null;
-    const itemText=(workData.items||[]).map(x=>x.name==="other_custom"||x.name==="其他施工"?(x.customName||x.name):x.name).join("、");
+    const itemText=(workData.items||[]).map(x=>x.name==="other_custom"||x.name==="other施工"?(x.customName||x.name):x.name).join("、");
     await upsertLinkedLandlord(linkId,{
       date:workData.date,direction:"AS-奧迪應付 AS COATING",category:"AS-奧迪委託施工",
       item:(workData.plate?workData.plate+"｜":"")+(itemText||"施工服務"),
@@ -2471,7 +2499,7 @@ async function bootASCoatingSystem(){
     if(!isAS)return;
     const linkId=advanceData.landlordLinkId||("advance_link_"+advanceId);
     await upsertLinkedLandlord(linkId,{
-      date:advanceData.date,direction:"AS-奧迪應付 AS COATING",category:"其他",
+      date:advanceData.date,direction:"AS-奧迪應付 AS COATING",category:"other",
       item:"【代墊請款】"+(advanceData.item||""),amount:Number(advanceData.amount||0),share:100,
       note:"幫奧迪代墊付款，向奧迪請款｜"+(advanceData.note||""),sourceType:"advance",linkedRecordId:advanceId
     });
@@ -2512,7 +2540,7 @@ async function bootASCoatingSystem(){
     } else {
       const payload = {
         date: landlordData.date,
-        category: landlordData.category || "其他",
+        category: landlordData.category || "other",
         item: itemText,
         amount: finalAmount,
         payee: "AS-奧迪",
@@ -2576,7 +2604,7 @@ async function bootASCoatingSystem(){
                       if(workRec.carColor) carColor = workRec.carColor;
                       if(workRec.plate) plate = workRec.plate;
                       if(Array.isArray(workRec.items) && workRec.items.length > 0) {
-                        itemStr = workRec.items.map(x => (x.name === "other_custom" || x.name === "其他施工") ? (x.customName || "其他施工") : x.name).join("、");
+                        itemStr = workRec.items.map(x => (x.name === "other_custom" || x.name === "other施工") ? (x.customName || "other施工") : x.name).join("、");
                       }
                     }
                   }
@@ -2656,16 +2684,20 @@ async function bootASCoatingSystem(){
       document.querySelectorAll(".work-item-check:checked").forEach(c=>{
         const p=document.querySelector(`[data-price="${CSS.escape(c.dataset.item)}"]`);
         const item={
-          name:c.dataset.item==="other_custom"||c.dataset.item==="其他施工"?"other_custom":c.dataset.item,
+          name:c.dataset.item==="other_custom"||c.dataset.item==="other施工"?"other_custom":c.dataset.item,
           price:Number(p?.value||0)
         };
-        if(c.dataset.item==="其他施工"){
+        if(c.dataset.item==="other施工"){
           item.customName=form.elements.otherWorkName.value.trim();
         }
         selected.push(item);
       });
 
       const f=form.elements;
+      // 強制透過獨立 ID 絕對抓到最新輸入的值
+      const tLast5Val = document.getElementById("transferLast5Input") ? document.getElementById("transferLast5Input").value.trim() : (f.transferLast5 ? f.transferLast5.value.trim() : "");
+      const tDateVal = document.getElementById("transferDateInput") ? document.getElementById("transferDateInput").value : (f.transferDate ? f.transferDate.value : "");
+
       data = {
         date:f.date.value,
         plate:f.plate.value.trim(),
@@ -2677,17 +2709,17 @@ async function bootASCoatingSystem(){
         amount:Number(f.amount.value||0),
         paymentStatus:f.paymentStatus.value,
         paymentMethod:f.paymentMethod.value,
-        transferLast5:f.paymentMethod==="匯款" ? f.transferLast5.value.trim() : "",
-        transferDate:f.paymentMethod==="匯款" ? f.transferDate.value : "",
+        transferLast5: data.paymentMethod==="匯款" ? tLast5Val : "",
+        transferDate: data.paymentMethod==="匯款" ? tDateVal : "",
         note:f.note.value.trim()
       };
+      
+      // 確保即使變數宣告順序也絕對能寫入
+      data.transferLast5 = (f.paymentMethod.value === "匯款") ? tLast5Val : "";
+      data.transferDate = (f.paymentMethod.value === "匯款") ? tDateVal : "";
 
       if(data.amount<0){
         toast("施工總金額不可為負數。");
-        return;
-      }
-      if(data.paymentMethod==="匯款"&&data.transferLast5&&!/^\d{4,5}$/.test(data.transferLast5)){
-        toast("匯款帳號後 4~5 碼格式不正確。");
         return;
       }
     }else{
