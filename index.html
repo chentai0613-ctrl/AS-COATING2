@@ -1978,13 +1978,14 @@ async function bootASCoatingSystem(){
           if(m === "advances"){
             const isCollected = r.status === "已收回" || r.status === "已抵扣";
             const badgeClass = isCollected ? "badge-green" : "badge-orange";
+            const advanceItemText = r.item || r.advanceItem || "—";
 
             return `
               <div class="generic-card ${isCollected?"":"border-orange"}" data-id="${safe(r.id)}" data-search="${safe(searchableText(r))}">
                 <div class="card-top">
                   <div class="card-title-group">
                     <div class="card-date">${safe(r.date)}</div>
-                    <div class="card-main-title">${safe(r.item)}</div>
+                    <div class="card-main-title">${safe(advanceItemText)}</div>
                   </div>
                   <div class="card-right-group">
                     <div class="card-amount">${money(r.amount)}</div>
@@ -2085,7 +2086,7 @@ async function bootASCoatingSystem(){
     return [
       r.date,r.month,r.plate,r.owner,r.car,r.vendorName,
       r.paymentStatus,r.paymentMethod,r.transferLast5,r.transferDate,r.note,
-      r.category,r.item,r.payee,r.person,r.status,
+      r.category,r.item,r.advanceItem,r.payee,r.person,r.status,
       r.direction,r.type,itemText
     ].filter(Boolean).join(" ");
   }
@@ -2552,9 +2553,10 @@ async function bootASCoatingSystem(){
     const isAS=isASPerson(advanceData.person);
     if(!isAS)return;
     const linkId=advanceData.landlordLinkId||("advance_link_"+advanceId);
+    const advItemText = advanceData.item || advanceData.advanceItem || "代墊項目";
     await upsertLinkedLandlord(linkId,{
       date:advanceData.date,direction:"AS-奧迪應付 AS COATING",category:"other",
-      item:"【代墊請款】"+(advanceData.item||""),amount:Number(advanceData.amount||0),share:100,
+      item:"【代墊請款】"+advItemText,amount:Number(advanceData.amount||0),share:100,
       note:"幫奧迪代墊付款，向奧迪請款｜"+(advanceData.note||""),sourceType:"advance",linkedRecordId:advanceId
     });
   }
@@ -2582,6 +2584,7 @@ async function bootASCoatingSystem(){
       const payload = {
         date: landlordData.date,
         item: itemText,
+        advanceItem: itemText,
         amount: finalAmount,
         person: "AS-奧迪",
         status: "待收回",
@@ -2705,7 +2708,7 @@ async function bootASCoatingSystem(){
                     advRec = advanceRecords.find(x => x.date === r.date && Number(x.amount||0) === Number(r.amount||0));
                   }
 
-                  const advItem = advRec?.item || r.item || "—";
+                  const advItem = advRec?.item || advRec?.advanceItem || r.item || "—";
                   const advPerson = advRec?.person || "AS-奧迪";
                   const advStatus = advRec?.status || "待收回";
                   const advAmt = Number(advRec?.amount ?? r.amount ?? 0);
@@ -2829,6 +2832,10 @@ async function bootASCoatingSystem(){
         if(!el) return;
         data[f.key]= f.type==="checkbox"?el.checked: f.type==="number"?Number(el.value||0):(el.value ? el.value.trim() : "");
       });
+      if(m==="advances"){
+        const itemEl = form.querySelector('[name="item"]') || form.elements["item"];
+        if(itemEl) data.item = itemEl.value.trim();
+      }
     }
 
     if((m==="expenses"&&isASPerson(data.payee)) || (m==="advances"&&isASPerson(data.person))){
