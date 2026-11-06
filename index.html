@@ -750,7 +750,7 @@ async function bootASCoatingSystem(){
 
   /* 汽車美容施工項目（包含詳細鍍膜類別選單） */
   const WORK_ITEMS=[
-    "打蠟","洗車","貼膜前置-打蠟","貼膜前置-鍍膜","貼膜後置-鍍膜","精緻洗車","內裝清潔","內裝深層清潔","外觀美容",
+   "打蠟","洗車","貼膜前置-打蠟","貼膜前置-鍍膜","貼膜後置-鍍膜","精緻洗車","內裝清潔","內裝深層清潔","外觀美容",
     "漆面拋光","漆面美容",
     "義大利一層鍍膜",
     "義大利二層鍍膜",
@@ -2622,9 +2622,12 @@ async function bootASCoatingSystem(){
     }
   }
 
-  function generateLandlordStatement(){
+  async function generateLandlordStatement(){
     const month = dashboardMonth;
     const list = records.filter(r => isMonth(r, month));
+
+    const workRecords = guest() ? guestRead("work") : await read("work");
+    const advanceRecords = guest() ? guestRead("advances") : await read("advances");
 
     const deductionItems = list.filter(r => r.direction === "AS COATING 應付 AS-奧迪");
     const workItems = list.filter(r => r.sourceType === "work" || r.category === "AS-奧迪委託施工" || (r.id && String(r.id).startsWith("work_link_")));
@@ -2651,28 +2654,32 @@ async function bootASCoatingSystem(){
             <tbody>
               ${items.map(r => {
                 if(type === "work"){
-                  let car = r.car || "—";
-                  let carColor = r.carColor || "—";
-                  let plate = r.plate || "—";
-                  let owner = r.owner || "—";
-                  let paymentStatus = r.paymentStatus || "—";
-                  let itemStr = r.item || "";
-                  let amt = Number(r.amount || 0);
-
-                  if(r.linkedRecordId) {
-                    const workRec = (guest() ? guestRead("work") : records).find(x => x.id === r.linkedRecordId);
-                    if(workRec) {
-                      if(workRec.car) car = workRec.car;
-                      if(workRec.carColor) carColor = workRec.carColor;
-                      if(workRec.plate) plate = workRec.plate;
-                      if(workRec.owner) owner = workRec.owner;
-                      if(workRec.paymentStatus) paymentStatus = workRec.paymentStatus;
-                      amt = Number(workRec.amount || amt);
-                      if(Array.isArray(workRec.items) && workRec.items.length > 0) {
-                        itemStr = workRec.items.map(x => (x.name === "other_custom" || x.name === "other施工") ? (x.customName || "other施工") : x.name).join("、");
-                      }
-                    }
+                  let workRec = null;
+                  if(r.linkedRecordId){
+                    workRec = workRecords.find(x => x.id === r.linkedRecordId);
                   }
+                  if(!workRec && r.id){
+                    const cleanWorkId = r.id.replace("work_link_", "");
+                    workRec = workRecords.find(x => x.id === cleanWorkId);
+                  }
+                  if(!workRec){
+                    workRec = workRecords.find(x => x.date === r.date && Number(x.amount||0) === Number(r.amount||0));
+                  }
+
+                  const plate = workRec?.plate || "—";
+                  const owner = workRec?.owner || "—";
+                  const car = workRec?.car || "—";
+                  const carColor = workRec?.carColor || "—";
+                  const paymentStatus = workRec?.paymentStatus || "—";
+                  const amt = Number(workRec?.amount ?? r.amount ?? 0);
+
+                  let itemStr = "";
+                  if(workRec && Array.isArray(workRec.items) && workRec.items.length > 0){
+                    itemStr = workRec.items.map(x => (x.name === "other_custom" || x.name === "other施工") ? (x.customName || "other施工") : x.name).join("、");
+                  } else {
+                    itemStr = r.item || "施工服務";
+                  }
+
                   return `
                     <tr>
                       <td>${safe(r.date)}</td>
@@ -2680,28 +2687,30 @@ async function bootASCoatingSystem(){
                       <td>${safe(owner)}</td>
                       <td>${safe(car)}</td>
                       <td>${safe(carColor)}</td>
-                      <td>${safe(itemStr || r.item || "施工服務")}</td>
+                      <td>${safe(itemStr)}</td>
                       <td><b>${money(amt)}</b></td>
                       <td>${safe(paymentStatus)}</td>
                     </tr>
                   `;
                 } else if(type === "advance"){
-                  let advItem = r.item || "—";
-                  let advPerson = r.person || "AS-奧迪";
-                  let advStatus = r.status || "待收回";
-                  let advAmt = Number(r.amount || 0);
-                  let advNote = r.note || "";
-
-                  if(r.linkedRecordId) {
-                    const advRec = (guest() ? guestRead("advances") : records).find(x => x.id === r.linkedRecordId);
-                    if(advRec) {
-                      if(advRec.item) advItem = advRec.item;
-                      if(advRec.person) advPerson = advRec.person;
-                      if(advRec.status) advStatus = advRec.status;
-                      advAmt = Number(advRec.amount || advAmt);
-                      if(advRec.note) advNote = advRec.note;
-                    }
+                  let advRec = null;
+                  if(r.linkedRecordId){
+                    advRec = advanceRecords.find(x => x.id === r.linkedRecordId);
                   }
+                  if(!advRec && r.id){
+                    const cleanAdvId = r.id.replace("advance_link_", "");
+                    advRec = advanceRecords.find(x => x.id === cleanAdvId);
+                  }
+                  if(!advRec){
+                    advRec = advanceRecords.find(x => x.date === r.date && Number(x.amount||0) === Number(r.amount||0));
+                  }
+
+                  const advItem = advRec?.item || r.item || "—";
+                  const advPerson = advRec?.person || "AS-奧迪";
+                  const advStatus = advRec?.status || "待收回";
+                  const advAmt = Number(advRec?.amount ?? r.amount ?? 0);
+                  const advNote = advRec?.note || r.note || "";
+
                   return `
                     <tr>
                       <td>${safe(r.date)}</td>
