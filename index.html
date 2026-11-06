@@ -752,7 +752,6 @@ async function bootASCoatingSystem(){
   const WORK_ITEMS=[
     "打蠟","洗車","貼膜前置-打蠟","貼膜前置-鍍膜","貼膜後置-鍍膜","精緻洗車","內裝清潔","內裝深層清潔","外觀美容",
     "漆面拋光","漆面美容",
-    "鍍膜",
     "義大利一層鍍膜",
     "義大利二層鍍膜",
     "義大利三層鍍膜",
@@ -2265,7 +2264,6 @@ async function bootASCoatingSystem(){
         renderModule(m);
       };
       
-      /* 修正廠商名稱篩選打中文會跳掉的問題：改用即時過濾，不重新渲染整頁 */
       const vs=$("vendorSearch");
       if(vs){
         vs.value = vendorFilter;
@@ -2630,35 +2628,46 @@ async function bootASCoatingSystem(){
 
     const deductionItems = list.filter(r => r.direction === "AS COATING 應付 AS-奧迪");
     const workItems = list.filter(r => r.sourceType === "work" || r.category === "AS-奧迪委託施工" || (r.id && String(r.id).startsWith("work_link_")));
-    const advanceItems = list.filter(r => r.direction === "AS-奧迪應付 AS COATING" && !workItems.includes(r));
+    const advanceItems = list.filter(r => (r.sourceType === "advance" || (r.note||"").includes("代墊")) && !workItems.includes(r));
 
     const calcSubtotal = (arr) => sum(arr, r => landlordEffectiveAmount(r));
 
-    const renderTable = (title, items, isWork=false) => `
+    const renderTable = (title, items, type) => `
       <div style="margin-bottom:20px;">
         <h4 style="margin:0 0 8px; color:#526b5c; border-bottom:2px solid #e8e6df; padding-bottom:4px;">${title}（共 ${items.length} 筆）</h4>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>日期</th>
-                ${isWork?`<th>車款</th><th>車色</th><th>車牌</th><th>施工項目</th>`:`<th>項目類別</th><th>項目說明</th><th>原始金額</th><th>分擔比例</th><th>應負擔金額</th>`}
-                <th>金額/備註</th>
+                ${type === "work" ? `
+                  <th>施工日期</th><th>車牌</th><th>車主</th><th>車款</th><th>車色</th><th>施工項目</th><th>金額</th><th>收款狀態</th>
+                ` : type === "advance" ? `
+                  <th>代墊日期</th><th>代墊項目</th><th>代墊金額</th><th>代墊對象</th><th>處理狀態</th><th>備註說明</th>
+                ` : `
+                  <th>日期</th><th>項目類別</th><th>項目說明</th><th>原始金額</th><th>分擔比例</th><th>應負擔金額</th>
+                `}
               </tr>
             </thead>
             <tbody>
               ${items.map(r => {
-                if(isWork){
+                if(type === "work"){
                   let car = r.car || "—";
                   let carColor = r.carColor || "—";
                   let plate = r.plate || "—";
+                  let owner = r.owner || "—";
+                  let paymentStatus = r.paymentStatus || "—";
                   let itemStr = r.item || "";
+                  let amt = Number(r.amount || 0);
+
                   if(r.linkedRecordId) {
                     const workRec = (guest() ? guestRead("work") : records).find(x => x.id === r.linkedRecordId);
                     if(workRec) {
                       if(workRec.car) car = workRec.car;
                       if(workRec.carColor) carColor = workRec.carColor;
                       if(workRec.plate) plate = workRec.plate;
+                      if(workRec.owner) owner = workRec.owner;
+                      if(workRec.paymentStatus) paymentStatus = workRec.paymentStatus;
+                      amt = Number(workRec.amount || amt);
                       if(Array.isArray(workRec.items) && workRec.items.length > 0) {
                         itemStr = workRec.items.map(x => (x.name === "other_custom" || x.name === "other施工") ? (x.customName || "other施工") : x.name).join("、");
                       }
@@ -2667,14 +2676,43 @@ async function bootASCoatingSystem(){
                   return `
                     <tr>
                       <td>${safe(r.date)}</td>
+                      <td><b>${safe(plate)}</b></td>
+                      <td>${safe(owner)}</td>
                       <td>${safe(car)}</td>
                       <td>${safe(carColor)}</td>
-                      <td>${safe(plate)}</td>
                       <td>${safe(itemStr || r.item || "施工服務")}</td>
-                      <td><b>${money(r.amount)}</b></td>
+                      <td><b>${money(amt)}</b></td>
+                      <td>${safe(paymentStatus)}</td>
                     </tr>
                   `;
-                }else{
+                } else if(type === "advance"){
+                  let advItem = r.item || "—";
+                  let advPerson = r.person || "AS-奧迪";
+                  let advStatus = r.status || "待收回";
+                  let advAmt = Number(r.amount || 0);
+                  let advNote = r.note || "";
+
+                  if(r.linkedRecordId) {
+                    const advRec = (guest() ? guestRead("advances") : records).find(x => x.id === r.linkedRecordId);
+                    if(advRec) {
+                      if(advRec.item) advItem = advRec.item;
+                      if(advRec.person) advPerson = advRec.person;
+                      if(advRec.status) advStatus = advRec.status;
+                      advAmt = Number(advRec.amount || advAmt);
+                      if(advRec.note) advNote = advRec.note;
+                    }
+                  }
+                  return `
+                    <tr>
+                      <td>${safe(r.date)}</td>
+                      <td><b>${safe(advItem)}</b></td>
+                      <td><b>${money(advAmt)}</b></td>
+                      <td>${safe(advPerson)}</td>
+                      <td>${safe(advStatus)}</td>
+                      <td>${safe(advNote)}</td>
+                    </tr>
+                  `;
+                } else {
                   const rawAmt = Number(r.amount || 0);
                   let share = r.share || (r.category==="水費"?50:r.category==="電費"?40:100);
                   return `
@@ -2688,7 +2726,7 @@ async function bootASCoatingSystem(){
                     </tr>
                   `;
                 }
-              }).join("") || `<tr><td colspan="7" class="empty">此區塊無相關紀錄</td></tr>`}
+              }).join("") || `<tr><td colspan="8" class="empty">此區塊無相關紀錄</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -2716,9 +2754,9 @@ async function bootASCoatingSystem(){
           <h3>AS COATING ＆ 奧迪 — ${safe(monthName(month))} 往來對帳結算明細</h3>
           <button class="secondary mini no-print" id="printStatementBtn">🖨️ 列印正式對帳單／另存 PDF</button>
         </div>
-        ${renderTable("一、應付款項", deductionItems, false)}
-        ${renderTable("二、AS 工作紀錄項目", workItems, true)}
-        ${renderTable("三、代墊項目", advanceItems, false)}
+        ${renderTable("一、應付款項", deductionItems, "deduction")}
+        ${renderTable("二、AS 工作紀錄項目", workItems, "work")}
+        ${renderTable("三、代墊項目", advanceItems, "advance")}
 
         <div class="print-footer">
           <div class="print-sign-box">AS COATING 簽章：<div class="print-sign-line"></div></div>
