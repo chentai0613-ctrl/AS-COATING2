@@ -99,7 +99,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 }
 .back-dashboard{background:#e9eee9;color:#526b5c;font-weight:700}
 
-/* 營運總覽 */
+/* 營運總覽與模組欄位 */
 .dashboard-heading{
   display:flex;justify-content:space-between;
   align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px;
@@ -198,7 +198,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .goal-progress-label{font-size:12px;color:var(--muted);font-weight:700}
 .goal-progress-value{font-size:20px;font-weight:900;margin-top:8px;color:var(--ink)}
 
-/* 激勵標語與目標進度樣式 */
 .motivation-card{
   background:linear-gradient(135deg, #f3f7f4, #e8f0eb);
   border:1px solid #d2e0d7;border-radius:13px;padding:16px;
@@ -275,9 +274,7 @@ textarea{min-height:75px;resize:vertical}
 .toolbar select{width:auto;min-width:130px;max-width:100%}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
 
-/* ========================================================
-   全模組統一：卡片式清單
-   ======================================================== */
+/* 卡片式清單 */
 .records-cards-grid {
   display: flex;
   flex-direction: column;
@@ -400,6 +397,13 @@ textarea{min-height:75px;resize:vertical}
 .btn-card-toggle { background: #fcf0ee; color: #b84242; }
 .btn-card-delete { background: #f7f7f4; color: #7a7a7a; }
 
+.record-select-checkbox {
+  width: 20px !important;
+  height: 20px !important;
+  cursor: pointer;
+  accent-color: #648875;
+}
+
 /* 彈出式編輯視窗 (Modal) 樣式 */
 .modal-overlay {
   position: fixed;
@@ -443,7 +447,7 @@ textarea{min-height:75px;resize:vertical}
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-/* 傳統表格包裝（備用） */
+/* 傳統表格包裝 */
 .table-wrap{
   width:100%;max-width:100%;overflow-x:auto;
   -webkit-overflow-scrolling:touch;
@@ -479,7 +483,7 @@ th{background:#fafaf8;color:var(--muted);font-size:12px}
 .invoice-total{font-size:25px;color:#c43f43;font-weight:900}
 .small-muted{font-size:11px;color:var(--muted)}
 #toast{
-  display:none;position:fixed;right:20px;bottom:20px;z-index:50;
+  display:none;position central;fixed;right:20px;bottom:20px;z-index:50;
   background:#35413b;color:white;padding:12px 18px;
   border-radius:10px;max-width:90vw;
 }
@@ -490,7 +494,6 @@ th{background:#fafaf8;color:var(--muted);font-size:12px}
   .item-list{grid-template-columns:1fr}
 }
 
-/* 專業正式報表與 A4 列印專用樣式（修正滑頁與表格撐開問題） */
 .print-header{display:none}
 .print-footer{display:none}
 
@@ -623,7 +626,7 @@ th{background:#fafaf8;color:var(--muted);font-size:12px}
   .field.full{grid-column:auto}
   .item-list{grid-template-columns:1fr}
   .chart-box{height:245px}
-  .summary-grid{grid-template-columns:1fr 1fr}
+  .summary-grid{grid-template-columns:1fr}
   .profit-summary{grid-template-columns:1fr}
   .profit-card .value{font-size:21px}
   .page-top{align-items:stretch}
@@ -748,7 +751,7 @@ async function bootASCoatingSystem(){
     "asd77890321@gmail.com"
   ];
 
-  /* 汽車美容施工項目（包含詳細鍍膜類別選單） */
+  /* 汽車美容施工項目 */
   const WORK_ITEMS=[
    "打蠟","洗車","貼膜前置-打蠟","貼膜前置-鍍膜","貼膜後置-鍍膜","精緻洗車","內裝清潔","內裝深層清潔","外觀美容",
     "漆面拋光","漆面美容",
@@ -834,6 +837,7 @@ async function bootASCoatingSystem(){
       {key:"person",label:"代墊對象",type:"vendor_dual"},
       {key:"status",label:"處理狀態",type:"select",
         options:["待收回","已收回","已抵扣"]},
+      {key:"statusDate",label:"處理日期（收回／抵扣日期）",type:"date"},
       {key:"note",label:"備註（請款說明/匯款備註）",type:"textarea",full:true}
     ],
     landlord:[
@@ -1123,7 +1127,7 @@ async function bootASCoatingSystem(){
 
     const vendors={};
     unpaidRows.forEach(r=>{
-      const name=r.vendorName||"未指定廠商";
+      const name=r.vendorName||"未指定廠商/客戶";
       if(!vendors[name])vendors[name]={count:0,total:0};
       vendors[name].count++;
       vendors[name].total+=amount(r);
@@ -1217,13 +1221,13 @@ async function bootASCoatingSystem(){
 
       <div class="panel">
         <div class="panel-head">
-          <h3>未收帳廠商統計</h3>
+          <h3>未收帳廠商/客戶統計</h3>
           <span class="note">${unpaidRows.length} 筆｜合計 ${money(unpaid)}</span>
         </div>
         <div class="vendor-list">
           ${vendorHTML||`<div class="vendor-empty">這個月份目前沒有未收帳或月結款項。</div>`}
         </div>
-        <p class="note">點選廠商即可進入工作紀錄，查看該廠商的請款資料。</p>
+        <p class="note">點選對象即可進入工作紀錄，查看該廠商/客戶的請款資料。</p>
       </div>
 
       <div class="panel">
@@ -1503,7 +1507,7 @@ async function bootASCoatingSystem(){
             <table>
               <thead>
                 <tr>
-                  <th>施工日期</th><th>車牌</th><th>車主</th><th>廠商／請款對象</th>
+                  <th>施工日期</th><th>車牌</th><th>車主</th><th>廠商／客戶</th>
                   <th>施工項目</th><th>營收金額</th><th>收款狀態</th>
                 </tr>
               </thead>
@@ -1611,13 +1615,13 @@ async function bootASCoatingSystem(){
             <input name="carColor" value="${safe(r.carColor||"")}" placeholder="例如：白、黑、銀">
           </div>
           <div class="field">
-            <label>廠商／請款對象</label>
+            <label>廠商／客戶名稱</label>
             <select id="workVendorSelect" style="margin-bottom:6px">
-              <option value="">（無廠商／自由空白）</option>
+              <option value="">（無／自由空白）</option>
               ${WORK_VENDORS.map(v=>`<option value="${safe(v)}" ${selectVal===v?"selected":""}>${safe(v)}</option>`)}
               <option value="CUSTOM_INPUT" ${selectVal==="CUSTOM_INPUT"?"selected":""}>✏️ 其他／手動自由輸入...</option>
             </select>
-            <input name="vendorName" id="workVendorInput" value="${safe(val)}" placeholder="請輸入廠商名稱" class="${selectVal==="CUSTOM_INPUT"?"":"hidden"}">
+            <input name="vendorName" id="workVendorInput" value="${safe(val)}" placeholder="請輸入廠商或客戶名稱" class="${selectVal==="CUSTOM_INPUT"?"":"hidden"}">
           </div>
           <div class="field full">
             <label>施工項目（可複選，各項目可輸入金額）</label>
@@ -1675,7 +1679,7 @@ async function bootASCoatingSystem(){
       let control="";
       if(f.type==="select"){
         control=`
-          <select name="${f.key}">
+          <select name="${f.key}" ${f.key==="status"?'id="advanceStatusSelect"':""}>
             <option value="">請選擇</option>
             ${f.options.map(x=>`<option value="${safe(x)}" ${v===x?"selected":""}>${safe(x)}</option>`)}
           </select>
@@ -1702,12 +1706,22 @@ async function bootASCoatingSystem(){
         `;
       }else{
         control=`
-          <input name="${f.key}" type="${f.type||"text"}" value="${safe(v || (f.type==="month"&&page==="goals"?new Date().toISOString().slice(0,7):""))}" ${f.required?"required":""} ${f.type==="number"?'min="0" step="1"':""}>
+          <input name="${f.key}" ${f.key==="statusDate"?'id="advanceStatusDateInput"':""} type="${f.type||"text"}" value="${safe(v || (f.type==="month"&&page==="goals"?new Date().toISOString().slice(0,7):""))}" ${f.required?"required":""} ${f.type==="number"?'min="0" step="1"':""}>
         `;
       }
       if(f.type==="checkbox")return `<div class="field">${control}</div>`;
+      
+      let wrapperClass = f.full?"full":"";
+      if(f.key === "statusDate"){
+        const currentStatus = r.status || "待收回";
+        if(currentStatus !== "已收回" && currentStatus !== "已抵扣"){
+          wrapperClass += " hidden";
+        }
+        wrapperClass += " advance-date-field-wrapper";
+      }
+
       return `
-        <div class="field ${f.full?"full":""}">
+        <div class="field ${wrapperClass}">
           <label>${f.label}${f.required?" *":""}</label>
           ${control}
         </div>
@@ -1732,8 +1746,11 @@ async function bootASCoatingSystem(){
         const totalBox=$("workItemTotal");
         if(totalBox)totalBox.textContent=money(total);
         const amountInput=$("recordForm")?.elements.amount;
-        if(amountInput)amountInput.value=total;
+        if(amountInput && !amountInput.dataset.userEdited){
+          amountInput.value=total;
+        }
       };
+
       checks.forEach(c=>c.onchange=update);
       prices.forEach(p=>{
         p.oninput=()=>{
@@ -1742,7 +1759,11 @@ async function bootASCoatingSystem(){
           update();
         };
       });
-      update();
+
+      const amountInput = $("recordForm")?.elements.amount;
+      if(amountInput){
+        amountInput.oninput = () => { amountInput.dataset.userEdited = "1"; };
+      }
 
       const vSelect = $("workVendorSelect");
       const vInput = $("workVendorInput");
@@ -1797,6 +1818,22 @@ async function bootASCoatingSystem(){
         };
       });
 
+      if(m==="advances"){
+        const statusSel = $("advanceStatusSelect");
+        const dateFieldWrapper = document.querySelector(".advance-date-field-wrapper");
+        if(statusSel && dateFieldWrapper){
+          statusSel.onchange = () => {
+            if(statusSel.value === "已收回" || statusSel.value === "已抵扣"){
+              dateFieldWrapper.classList.remove("hidden");
+            } else {
+              dateFieldWrapper.classList.add("hidden");
+              const dateInput = $("advanceStatusDateInput");
+              if(dateInput) dateInput.value = "";
+            }
+          };
+        }
+      }
+
       if(m==="expenses"){
         const form=$("recordForm");
         const category=form?.elements.category;
@@ -1845,7 +1882,7 @@ async function bootASCoatingSystem(){
             <h3>${isEdit?"修改":"新增"}${cfg.title}</h3>
             <button class="modal-close-btn" id="modalCloseBtn">✕</button>
           </div>
-          <form id="recordForm">
+          <form id="recordForm" data-record-id="${safe(recordId||"")} ">
             ${recordFormHTML(m, current)}
             <div class="actions" style="margin-top:20px; justify-content:flex-end;">
               <button class="secondary" type="button" id="modalCancelBtn">取消</button>
@@ -1897,7 +1934,7 @@ async function bootASCoatingSystem(){
             if(r.owner && r.owner.trim()){
               titleDisplay = safe(r.owner);
             } else if(r.vendorName && r.vendorName.trim()){
-              titleDisplay = `廠商：${safe(r.vendorName)}`;
+              titleDisplay = `對象：${safe(r.vendorName)}`;
             }
 
             const nextStatus = isPaid ? "未收" : "已收";
@@ -1910,9 +1947,12 @@ async function bootASCoatingSystem(){
             return `
               <div class="generic-card ${borderClass}" data-id="${safe(r.id)}" data-search="${safe(searchableText(r))}">
                 <div class="card-top">
-                  <div class="card-title-group">
-                    <div class="card-date">${safe(r.date)}</div>
-                    <div class="card-main-title">${titleDisplay}</div>
+                  <div style="display:flex; align-items:center; gap:10px;">
+                    <input type="checkbox" class="record-select-checkbox" data-record-id="${safe(r.id)}" ${isPaid ? "disabled" : ""}>
+                    <div class="card-title-group">
+                      <div class="card-date">${safe(r.date)}</div>
+                      <div class="card-main-title">${titleDisplay}</div>
+                    </div>
                   </div>
                   <div class="card-right-group">
                     <div class="card-amount">${money(r.amount)}</div>
@@ -1923,8 +1963,8 @@ async function bootASCoatingSystem(){
                   <div class="card-item"><span class="label">車牌：</span>${safe(r.plate||"—")}</div>
                   <div class="card-item"><span class="label">車款：</span>${safe(r.car||"—")}</div>
                   <div class="card-item"><span class="label">車色：</span>${safe(r.carColor||"—")}</div>
-                  <div class="card-item"><span class="label">廠商：</span>${safe(r.vendorName||"—")}</div>
-                  <div class="card-item" style="grid-column: span 2;"><span class="label">付款方式：</span>${safe(r.paymentMethod||"—")}${transferInfo}</div>
+                  <div class="card-item"><span class="label">廠商/客戶：</span>${safe(r.vendorName||"—")}</div>
+                  <div class="card-item" style="grid-column: span 2;"><span class="label">付款方式：</span>${safe(r.paymentMethod||JSON.stringify(r))}${transferInfo}</div>
                   <div class="card-item" style="grid-column: 1 / -1;"><span class="label">施工項目：</span>${itemText}</div>
                 </div>
                 ${r.note ? `<div class="card-note">備註：${safe(r.note)}</div>` : ""}
@@ -1979,6 +2019,7 @@ async function bootASCoatingSystem(){
             const isCollected = r.status === "已收回" || r.status === "已抵扣";
             const badgeClass = isCollected ? "badge-green" : "badge-orange";
             const advanceItemText = r.item || r.advanceItem || "—";
+            const statusDateInfo = (isCollected && r.statusDate) ? ` <br><span style="color:#2b5c3f; font-weight:bold;">📅 處理日期：${safe(r.statusDate)}</span>` : "";
 
             return `
               <div class="generic-card ${isCollected?"":"border-orange"}" data-id="${safe(r.id)}" data-search="${safe(searchableText(r))}">
@@ -1994,7 +2035,7 @@ async function bootASCoatingSystem(){
                 </div>
                 <div class="card-body-grid">
                   <div class="card-item"><span class="label">代墊對象：</span>${safe(r.person||"—")}</div>
-                  <div class="card-item"><span class="label">處理狀態：</span>${safe(r.status||"待收回")}</div>
+                  <div class="card-item" style="grid-column: span 2;"><span class="label">處理狀態：</span>${safe(r.status||"待收回")}${statusDateInfo}</div>
                 </div>
                 ${r.note ? `<div class="card-note">備註：${safe(r.note)}</div>` : ""}
                 <div class="card-actions">
@@ -2086,7 +2127,7 @@ async function bootASCoatingSystem(){
     return [
       r.date,r.month,r.plate,r.owner,r.car,r.vendorName,
       r.paymentStatus,r.paymentMethod,r.transferLast5,r.transferDate,r.note,
-      r.category,r.item,r.advanceItem,r.payee,r.person,r.status,
+      r.category,r.item,r.advanceItem,r.payee,r.person,r.status,r.statusDate,
       r.direction,r.type,itemText
     ].filter(Boolean).join(" ");
   }
@@ -2116,7 +2157,7 @@ async function bootASCoatingSystem(){
   }
 
   function applyDOMFilter(){
-    const query = $("searchInput") ? $("searchInput").value : "";
+    const query = $("searchInput") ? $("searchInput") .value : "";
     const cards = document.querySelectorAll(".generic-card");
     cards.forEach(card => {
       const text = card.dataset.search || "";
@@ -2133,15 +2174,53 @@ async function bootASCoatingSystem(){
     const list=moduleList(m);
     const isWork=m==="work";
 
+    let paidCashSum = 0;
+    let paidTransferSum = 0;
+    let paidMonthlySum = 0;
+
+    if(isWork){
+      list.forEach(r => {
+        if(r.paymentStatus === "已收"){
+          const pm = r.paymentMethod || "現金";
+          const amt = Number(r.amount || 0);
+          if(pm === "現金") paidCashSum += amt;
+          else if(pm === "匯款") paidTransferSum += amt;
+          else if(pm === "月結") paidMonthlySum += amt;
+          else paidCashSum += amt;
+        }
+      });
+    }
+
+    const workSummaryHTML = isWork ? `
+      <div class="summary-grid" style="margin-bottom: 16px;">
+        <div class="summary-card" style="background:#edf7f2;">
+          <span style="font-size:12px; color:#4a735c; font-weight:bold;">💵 已收現金</span>
+          <b class="green-text" style="font-size:22px;">${money(paidCashSum)}</b>
+        </div>
+        <div class="summary-card" style="background:#eef4fb;">
+          <span style="font-size:12px; color:#4d6d93; font-weight:bold;">💳 已收匯款</span>
+          <b class="blue-text" style="font-size:22px;">${money(paidTransferSum)}</b>
+        </div>
+        <div class="summary-card" style="background:#fcf4ec;">
+          <span style="font-size:12px; color:#9c6b3e; font-weight:bold;">📆 已收月結</span>
+          <b class="orange-text" style="font-size:22px;">${money(paidMonthlySum)}</b>
+        </div>
+      </div>
+    ` : "";
+
     const workFilters=isWork?`
       <select id="paymentFilter">
         ${["全部","未收及月結","已收","未收","月結"].map(x=>`<option ${paymentFilter===x?"selected":""}>${x}</option>`)}
       </select>
-      <input id="vendorSearch" placeholder="廠商名稱篩選" value="${safe(vendorFilter)}">
+      <input id="vendorSearch" placeholder="廠商/客戶名稱篩選" value="${safe(vendorFilter)}">
     `:"";
 
     const expenseBatchBtn = m === "expenses" ? `
       <button type="button" class="purple-btn" id="addFixedExpensesBtn" style="margin-left:auto;">⚡ 一鍵產生【${monthName(dashboardMonth)}】8筆固定月支出</button>
+    ` : "";
+
+    const batchPaidBtn = isWork ? `
+      <button type="button" class="secondary" id="batchPaidBtn" style="background:#e3f0e8; color:#2e5940; font-weight:bold;">✅ 批次確認已收 (選取 <span id="selectedCountSpan">0</span> 筆)</button>
     ` : "";
 
     $("pageContent").innerHTML=`
@@ -2159,12 +2238,14 @@ async function bootASCoatingSystem(){
         </div>
       </div>
 
+      ${isWork ? workSummaryHTML : ""}
       ${m==="landlord"?landlordSummaryHTML():""}
 
       <div class="panel">
         <div class="panel-head">
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
             <button class="primary" id="addNewRecordBtn">+ 新增${cfg.title}</button>
+            ${batchPaidBtn}
             ${expenseBatchBtn}
           </div>
         </div>
@@ -2174,7 +2255,7 @@ async function bootASCoatingSystem(){
 
       <div class="panel">
         <div class="toolbar">
-          <input id="searchInput" placeholder="${isWork?"可輸入車牌、車主、車款、廠商、施工項目、付款方式等關鍵字":"輸入多個關鍵字交叉搜尋"}" value="${safe(search)}">
+          <input id="searchInput" placeholder="${isWork?"可輸入車牌、車主、車款、廠商/客戶、施工項目、付款方式等關鍵字":"輸入多個關鍵字交叉搜尋"}" value="${safe(search)}">
           ${workFilters}
         </div>
 
@@ -2195,6 +2276,51 @@ async function bootASCoatingSystem(){
         records = await read(m);
         renderModule(m);
       };
+    }
+
+    if(isWork){
+      const updateSelectedCount = () => {
+        const selected = document.querySelectorAll(".record-select-checkbox:checked");
+        const span = $("selectedCountSpan");
+        if(span) span.textContent = selected.length;
+      };
+
+      document.querySelectorAll(".record-select-checkbox").forEach(cb => {
+        cb.onchange = updateSelectedCount;
+      });
+
+      const batchBtn = $("batchPaidBtn");
+      if(batchBtn){
+        batchBtn.onclick = async () => {
+          const selectedCheckboxes = [...document.querySelectorAll(".record-select-checkbox:checked")];
+          const selectedIds = selectedCheckboxes.map(cb => cb.dataset.recordId);
+
+          if(selectedIds.length === 0){
+            toast("請先在下方卡片中勾選欲變更為「已收」的紀錄！");
+            return;
+          }
+
+          if(!confirm(`確定要將已勾選的 ${selectedIds.length} 筆項目變更為「已收」嗎？`)) return;
+
+          try {
+            for(const id of selectedIds){
+              if(guest()){
+                let localList = guestRead("work");
+                localList = localList.map(item => item.id === id ? {...item, paymentStatus: "已收"} : item);
+                guestWrite("work", localList);
+              } else {
+                await updateDoc(doc(col("work"), id), {paymentStatus: "已收", updatedAt: serverTimestamp()});
+              }
+            }
+            records = await read("work");
+            await allData();
+            renderModule("work");
+            toast(`已成功將勾選的 ${selectedIds.length} 筆項目更新為「已收」！`);
+          } catch(err) {
+            toast("批次更新失敗：" + err.message);
+          }
+        };
+      }
     }
 
     if(m==="expenses"){
@@ -2326,16 +2452,16 @@ async function bootASCoatingSystem(){
     const vendors=[...new Set(records.map(r=>r.vendorName).filter(Boolean))].sort();
     return `
       <div class="panel no-print">
-        <h3>廠商請款單／對帳表</h3>
+        <h3>廠商／客戶請款單／對帳表</h3>
         <div class="grid">
           <div class="field">
             <label>請款月份</label>
             <input type="month" id="invoiceMonth" value="${safe(invoiceMonth)}">
           </div>
           <div class="field">
-            <label>廠商名稱</label>
+            <label>廠商／客戶名稱</label>
             <select id="invoiceVendor">
-              <option value="">全部廠商</option>
+              <option value="">全部對象</option>
               ${vendors.map(v=>`<option value="${safe(v)}" ${vendorFilter===v?"selected":""}>${safe(v)}</option>`)}
             </select>
           </div>
@@ -2388,10 +2514,10 @@ async function bootASCoatingSystem(){
       <div class="panel" id="invoicePrint">
         <div class="print-header">
           <h1>AS COATING</h1>
-          <div class="print-subtitle">廠商施工請款明細對帳單 (Statement of Account)</div>
+          <div class="print-subtitle">廠商／客戶施工請款明細對帳單 (Statement of Account)</div>
           <div class="print-meta">
             <span>請款月份：${safe(monthName(month))}</span>
-            <span>請款對象：${safe(vendor||"全部廠商")}</span>
+            <span>請款對象：${safe(vendor||"全部對象")}</span>
             <span>列印日期：${today()}</span>
           </div>
         </div>
@@ -2511,7 +2637,7 @@ async function bootASCoatingSystem(){
     const old=list.find(x=>x.id===linkId||x.linkedRecordId===data.linkedRecordId);
     const payload={...data,sourceType:data.sourceType||"expense",linkedRecordId:data.linkedRecordId||linkId};
     if(guest()){
-      if(old)list=list.map(x=>x.id===linkId?{...x,...payload}:x);
+      if(old)list=list.map(x=>x.id===linkId||x.linkedRecordId===data.linkedRecordId?{...x,...payload}:x);
       else list.push({id:linkId,...payload});
       guestWrite("landlord",list);
       return;
@@ -2551,14 +2677,15 @@ async function bootASCoatingSystem(){
 
   async function syncAdvanceToLandlord(advanceData,advanceId){
     const isAS=isASPerson(advanceData.person);
-    if(!isAS)return;
     const linkId=advanceData.landlordLinkId||("advance_link_"+advanceId);
+    if(!isAS)return null;
     const advItemText = advanceData.item || advanceData.advanceItem || "代墊項目";
     await upsertLinkedLandlord(linkId,{
       date:advanceData.date,direction:"AS-奧迪應付 AS COATING",category:"other",
       item:"【代墊請款】"+advItemText,amount:Number(advanceData.amount||0),share:100,
       note:"幫奧迪代墊付款，向奧迪請款｜"+(advanceData.note||""),sourceType:"advance",linkedRecordId:advanceId
     });
+    return linkId;
   }
 
   async function upsertLinkedTarget(colName, linkId, payload){
@@ -2577,47 +2704,75 @@ async function bootASCoatingSystem(){
   async function syncLandlordToExpenseOrAdvance(landlordData, landlordId){
     const itemText = landlordData.item || landlordData.category || "";
     const isAdvance = landlordData.direction === "AS-奧迪應付 AS COATING" || itemText.includes("代墊") || (landlordData.note || "").includes("代墊");
-    const linkId = landlordData.linkedRecordId || ("target_link_" + landlordId);
+    const linkId = landlordData.linkedRecordId || landlordId;
     const finalAmount = Number(landlordData.amount || 0);
 
     if(isAdvance){
-      const payload = {
-        date: landlordData.date,
-        item: itemText,
-        advanceItem: itemText,
-        amount: finalAmount,
-        person: "AS-奧迪",
-        status: "待收回",
-        note: "由 AS-奧迪往來結算同步｜" + (landlordData.note || ""),
-        landlordLinkId: landlordId,
-        linkedRecordId: landlordId
-      };
-      await upsertLinkedTarget("advances", linkId, payload);
-      await cleanUnmatchedTarget("expenses", landlordId);
+      const isWorkLink = (landlordData.note || "").includes("由工作紀錄");
+      if(isWorkLink){
+        let workList = guest() ? guestRead("work") : await read("work");
+        let targetWork = workList.find(x => x.id === landlordData.linkedRecordId);
+        if(targetWork){
+          let updatedWork = {...targetWork, date: landlordData.date, amount: finalAmount, note: landlordData.note.replace("由工作紀錄自動同步｜", "")};
+          if(guest()){
+            guestWrite("work", workList.map(x => x.id === targetWork.id ? updatedWork : x));
+          } else {
+            await updateDoc(doc(col("work"), targetWork.id), {date: landlordData.date, amount: finalAmount, note: updatedWork.note, updatedAt: serverTimestamp()});
+          }
+        }
+      } else {
+        const payload = {
+          date: landlordData.date,
+          item: itemText.replace("【代墊請款】", ""),
+          advanceItem: itemText.replace("【代墊請款】", ""),
+          amount: finalAmount,
+          person: "AS-奧迪",
+          status: "待收回",
+          note: "由 AS-奧迪往來結算同步｜" + (landlordData.note || ""),
+          landlordLinkId: landlordId,
+          linkedRecordId: landlordId
+        };
+        await upsertLinkedTarget("advances", linkId, payload);
+        await cleanUnmatchedTarget("expenses", landlordId);
+      }
     } else {
-      const payload = {
-        date: landlordData.date,
-        category: landlordData.category || "other",
-        item: itemText,
-        amount: finalAmount,
-        payee: "AS-奧迪",
-        paymentMethod: "現金",
-        paid: "未付款",
-        note: "由 AS-奧迪往來結算同步｜" + (landlordData.note || ""),
-        landlordLinkId: landlordId,
-        linkedRecordId: landlordId
-      };
-      await upsertLinkedTarget("expenses", linkId, payload);
-      await cleanUnmatchedTarget("advances", landlordId);
+      const isExpenseLink = (landlordData.note || "").includes("由支出記帳");
+      if(isExpenseLink && landlordData.linkedRecordId){
+        let expList = guest() ? guestRead("expenses") : await read("expenses");
+        let targetExp = expList.find(x => x.id === landlordData.linkedRecordId);
+        if(targetExp){
+          let updatedExp = {...targetExp, date: landlordData.date, category: landlordData.category, amount: finalAmount, note: landlordData.note.replace("由支出記帳自動同步｜", "")};
+          if(guest()){
+            guestWrite("expenses", expList.map(x => x.id === targetExp.id ? updatedExp : x));
+          } else {
+            await updateDoc(doc(col("expenses"), targetExp.id), {date: landlordData.date, category: landlordData.category, amount: finalAmount, note: updatedExp.note, updatedAt: serverTimestamp()});
+          }
+        }
+      } else {
+        const payload = {
+          date: landlordData.date,
+          category: landlordData.category || "other",
+          item: itemText,
+          amount: finalAmount,
+          payee: "AS-奧迪",
+          paymentMethod: "現金",
+          paid: "未付款",
+          note: "由 AS-奧迪往來結算同步｜" + (landlordData.note || ""),
+          landlordLinkId: landlordId,
+          linkedRecordId: landlordId
+        };
+        await upsertLinkedTarget("expenses", linkId, payload);
+        await cleanUnmatchedTarget("advances", landlordId);
+      }
     }
   }
 
   async function cleanUnmatchedTarget(colName, landlordId){
     let list = guest() ? guestRead(colName) : await read(colName);
-    const old = list.filter(x => x.landlordLinkId === landlordId || x.linkedRecordId === landlordId || x.id === ("target_link_" + landlordId));
+    const old = list.filter(x => x.landlordLinkId === landlordId || x.linkedRecordId === landlordId || x.id === landlordId);
     if(old.length > 0){
       if(guest()){
-        list = list.filter(x => !(x.landlordLinkId === landlordId || x.linkedRecordId === landlordId || x.id === ("target_link_" + landlordId)));
+        list = list.filter(x => !(x.landlordLinkId === landlordId || x.linkedRecordId === landlordId || x.id === landlordId));
         guestWrite(colName, list);
       } else {
         await Promise.all(old.map(r => deleteDoc(doc(col(colName), r.id))));
@@ -2648,7 +2803,7 @@ async function bootASCoatingSystem(){
                 ${type === "work" ? `
                   <th>施工日期</th><th>車牌</th><th>車主</th><th>車款</th><th>車色</th><th>施工項目</th><th>金額</th><th>收款狀態</th>
                 ` : type === "advance" ? `
-                  <th>代墊日期</th><th>代墊項目</th><th>代墊金額</th><th>代墊對象</th><th>處理狀態</th><th>備註說明</th>
+                  <th>代墊日期</th><th>代墊項目</th><th>代墊金額</th><th>代墊對象</th><th>處理狀態</th><th>處理日期</th><th>備註說明</th>
                 ` : `
                   <th>日期</th><th>項目類別</th><th>項目說明</th><th>原始金額</th><th>分擔比例</th><th>應負擔金額</th>
                 `}
@@ -2711,6 +2866,7 @@ async function bootASCoatingSystem(){
                   const advItem = advRec?.item || advRec?.advanceItem || r.item || "—";
                   const advPerson = advRec?.person || "AS-奧迪";
                   const advStatus = advRec?.status || "待收回";
+                  const advStatusDate = advRec?.statusDate || "—";
                   const advAmt = Number(advRec?.amount ?? r.amount ?? 0);
                   const advNote = advRec?.note || r.note || "";
 
@@ -2721,6 +2877,7 @@ async function bootASCoatingSystem(){
                       <td><b>${money(advAmt)}</b></td>
                       <td>${safe(advPerson)}</td>
                       <td>${safe(advStatus)}</td>
+                      <td>${safe(advStatusDate)}</td>
                       <td>${safe(advNote)}</td>
                     </tr>
                   `;
@@ -2802,25 +2959,30 @@ async function bootASCoatingSystem(){
       const f=form.elements;
       const tLast5Val = document.getElementById("transferLast5Input") ? document.getElementById("transferLast5Input").value.trim() : (f.transferLast5 ? f.transferLast5.value.trim() : "");
       const tDateVal = document.getElementById("transferDateInput") ? document.getElementById("transferDateInput").value : (f.transferDate ? f.transferDate.value : "");
+      
+      const vInputElem = document.getElementById("workVendorInput");
+      const vSelectElem = document.getElementById("workVendorSelect");
+      const vendorVal = (vSelectElem && vSelectElem.value === "CUSTOM_INPUT" && vInputElem) ? vInputElem.value.trim() : (vSelectElem ? vSelectElem.value : (f.vendorName ? f.vendorName.value.trim() : ""));
+
+      const oInputElem = document.getElementById("workOwnerInput");
+      const oSelectElem = document.getElementById("workOwnerSelect");
+      const ownerVal = (oSelectElem && oSelectElem.value === "CUSTOM_INPUT" && oInputElem) ? oInputElem.value.trim() : (oSelectElem ? oSelectElem.value : (f.owner ? f.owner.value.trim() : ""));
 
       data = {
         date:f.date.value,
         plate:f.plate.value.trim(),
-        owner:f.owner.value.trim(),
+        owner:ownerVal,
         car:f.car.value.trim(),
         carColor:f.carColor.value.trim(),
-        vendorName:f.vendorName.value.trim(),
+        vendorName:vendorVal,
         items:selected,
         amount:Number(f.amount.value||0),
         paymentStatus:f.paymentStatus.value,
         paymentMethod:f.paymentMethod.value,
-        transferLast5: data.paymentMethod==="匯款" ? tLast5Val : "",
-        transferDate: data.paymentMethod==="匯款" ? tDateVal : "",
+        transferLast5: f.paymentMethod.value==="匯款" ? tLast5Val : "",
+        transferDate: f.paymentMethod.value==="匯款" ? tDateVal : "",
         note:f.note.value.trim()
       };
-      
-      data.transferLast5 = (f.paymentMethod.value === "匯款") ? tLast5Val : "";
-      data.transferDate = (f.paymentMethod.value === "匯款") ? tDateVal : "";
 
       if(data.amount<0){
         toast("施工總金額不可為負數。");
@@ -2829,12 +2991,25 @@ async function bootASCoatingSystem(){
     }else{
       FIELDS[m].forEach(f=>{
         const el=form.elements[f.key];
-        if(!el) return;
-        data[f.key]= f.type==="checkbox"?el.checked: f.type==="number"?Number(el.value||0):(el.value ? el.value.trim() : "");
+        if(f.type==="vendor_dual"){
+          const dualSel = form.querySelector(`.vendor-dual-select[data-target="${f.key}"]`);
+          const dualInp = form.querySelector(`#${f.key}Input`);
+          if(dualSel && dualSel.value === "CUSTOM_INPUT" && dualInp){
+            data[f.key] = dualInp.value.trim();
+          } else {
+            data[f.key] = dualSel ? dualSel.value : (el && el.value ? el.value.trim() : "");
+          }
+        } else if(el){
+          data[f.key]= f.type==="checkbox"?el.checked: f.type==="number"?Number(el.value||0):(el.value ? el.value.trim() : "");
+        }
       });
       if(m==="advances"){
         const itemEl = form.querySelector('[name="item"]') || form.elements["item"];
         if(itemEl) data.item = itemEl.value.trim();
+        const statusEl = form.querySelector('[name="status"]');
+        if(statusEl && statusEl.value !== "已收回" && statusEl.value !== "已抵扣"){
+          data.statusDate = "";
+        }
       }
     }
 
@@ -2853,6 +3028,8 @@ async function bootASCoatingSystem(){
       if(guest()){
         let list=guestRead(m);
         if(recordId){
+          let existing = list.find(r => r.id === recordId);
+          if(existing && existing.landlordLinkId) data.landlordLinkId = existing.landlordLinkId;
           list=list.map(r=>r.id===recordId?{...r,...data}:r);
         }else{
           savedId="guest_"+Date.now();
@@ -2875,7 +3052,15 @@ async function bootASCoatingSystem(){
           if(guest())guestWrite("work",guestRead("work").map(r=>r.id===savedId?{...r,landlordLinkId:linked}:r));
           else await updateDoc(doc(col("work"),savedId),{landlordLinkId:linked});
         }
+      } else if(m==="work" && !isASPerson(data.vendorName)){
+        let landlordList = guest() ? guestRead("landlord") : await read("landlord");
+        let matched = landlordList.find(x => x.linkedRecordId === savedId || x.id === ("work_link_" + savedId));
+        if(matched){
+          if(guest()) guestWrite("landlord", landlordList.filter(x => x.id !== matched.id));
+          else await deleteDoc(doc(col("landlord"), matched.id));
+        }
       }
+
       if(m==="expenses"){
         const linked=await syncExpenseToLandlord(data,savedId);
         if(linked){
@@ -2884,7 +3069,18 @@ async function bootASCoatingSystem(){
         }
       }
       if(m==="advances"){
-        await syncAdvanceToLandlord(data,savedId);
+        const linked = await syncAdvanceToLandlord(data,savedId);
+        if(linked){
+          if(guest())guestWrite("advances",guestRead("advances").map(r=>r.id===savedId?{...r,landlordLinkId:linked}:r));
+          else await updateDoc(doc(col("advances"),savedId),{landlordLinkId:linked});
+        } else {
+          let landlordList = guest() ? guestRead("landlord") : await read("landlord");
+          let matched = landlordList.find(x => x.linkedRecordId === savedId || x.id === ("advance_link_" + savedId));
+          if(matched){
+            if(guest()) guestWrite("landlord", landlordList.filter(x => x.id !== matched.id));
+            else await deleteDoc(doc(col("landlord"), matched.id));
+          }
+        }
       }
       if(m==="landlord"){
         await syncLandlordToExpenseOrAdvance(data, savedId);
@@ -2907,7 +3103,7 @@ async function bootASCoatingSystem(){
       if(guest())guestWrite(m,guestRead(m).filter(r=>r.id!==id));
       else await deleteDoc(doc(col(m),id));
 
-      const linkedId=current?.landlordLinkId ||
+      const linkedId=current?.landlordLinkId || current?.linkedRecordId ||
         ((m==="work" && isASPerson(current?.vendorName))?"work_link_"+id:null) ||
         (m==="expenses"?"expense_link_"+id:null) ||
         (m==="advances" && isASPerson(current?.person)?"advance_link_"+id:null);
@@ -2919,8 +3115,21 @@ async function bootASCoatingSystem(){
           await Promise.all(linked.map(r=>deleteDoc(doc(col("landlord"),r.id))));
         }
       }
+
+      if(m==="landlord"){
+        if(current?.linkedRecordId){
+          let colName = (current.note||"").includes("由代墊") ? "advances" : "expenses";
+          let tList = guest() ? guestRead(colName) : await read(colName);
+          let target = tList.find(x => x.id === current.linkedRecordId);
+          if(target){
+            if(guest()) guestWrite(colName, tList.filter(x => x.id !== target.id));
+            else await deleteDoc(doc(col(colName), target.id));
+          }
+        }
+      }
+
       records=await read(m);
-      if(m==="expenses" || m==="work" || m==="advances"){
+      if(m==="expenses" || m==="work" || m==="advances" || m==="landlord"){
         await allData();
       }
       renderModule(m);
