@@ -483,7 +483,7 @@ th{background:#fafaf8;color:var(--muted);font-size:12px}
 .invoice-total{font-size:25px;color:#c43f43;font-weight:900}
 .small-muted{font-size:11px;color:var(--muted)}
 #toast{
-  display:none;position central;fixed;right:20px;bottom:20px;z-index:50;
+  display:none;position:fixed;right:20px;bottom:20px;z-index:50;
   background:#35413b;color:white;padding:12px 18px;
   border-radius:10px;max-width:90vw;
 }
@@ -890,10 +890,10 @@ async function bootASCoatingSystem(){
   }[c]));
 
   const getExpenseDisplayName = r => {
-    if(r.category === "other" || r.category === "other_custom" || !r.category) {
-      return r.item ? safe(r.item) : "other支出";
+    if(r.category === "other" || r.category === "other_custom" || r.category === "其他" || !r.category) {
+      return r.item ? safe(r.item) : "其他支出";
     }
-    return safe(r.category);
+    return safe(r.item || r.category);
   };
 
   const isASPerson = s => {
@@ -1681,7 +1681,15 @@ async function bootASCoatingSystem(){
         control=`
           <select name="${f.key}" ${f.key==="status"?'id="advanceStatusSelect"':""}>
             <option value="">請選擇</option>
-            ${f.options.map(x=>`<option value="${safe(x)}" ${v===x?"selected":""}>${safe(x)}</option>`)}
+            ${f.options.map(x=> {
+              let isSelected = false;
+              if (f.key === "paid") {
+                isSelected = (v === x) || (v === true && x === "已完成付款") || (v === "已付" && x === "已完成付款");
+              } else {
+                isSelected = (v === x);
+              }
+              return `<option value="${safe(x)}" ${isSelected ? "selected" : ""}>${safe(x)}</option>`;
+            }).join("")}
           </select>
         `;
       }else if(f.type==="vendor_dual"){
@@ -1840,8 +1848,8 @@ async function bootASCoatingSystem(){
         const item=form?.elements.item;
         const applyExpenseItem=()=>{
           if(!category||!item)return;
-          if(category.value && category.value !== "other"){
-            if(!item.value || EXPENSE_CATEGORIES.includes(item.value)){
+          if(category.value && category.value !== "other" && category.value !== "其他"){
+            if(!item.value.trim() || EXPENSE_CATEGORIES.includes(item.value)){
               item.value = category.value;
             }
           }
@@ -1978,7 +1986,7 @@ async function bootASCoatingSystem(){
           }
 
           if(m === "expenses"){
-            const isPaid = r.paid === true || r.paid === "已完成付款";
+            const isPaid = r.paid === true || r.paid === "已完成付款" || r.paid === "已付";
             const badgeClass = isPaid ? "badge-green" : "badge-red";
             const displayName = getExpenseDisplayName(r);
             const amt = Number(r.amount || 0);
@@ -2000,7 +2008,7 @@ async function bootASCoatingSystem(){
                 </div>
                 <div class="card-body-grid">
                   <div class="card-item"><span class="label">支出類別：</span>${safe(r.category||"—")}</div>
-                  <div class="card-item"><span class="label">項目名稱：</span>${safe(r.item||"—")}${safe(subAmtText)}</div>
+                  <div class="card-item"><span class="label">項目名稱：</span>${safe(r.item||displayName)}${safe(subAmtText)}</div>
                   <div class="card-item"><span class="label">付款對象：</span>${safe(r.payee||"—")}</div>
                   <div class="card-item"><span class="label">付款方式：</span>${safe(r.paymentMethod||"—")}</div>
                   <div class="card-item"><span class="label">付款狀態：</span>${safe(r.paid||"未付款")}</div>
@@ -3003,6 +3011,21 @@ async function bootASCoatingSystem(){
           data[f.key]= f.type==="checkbox"?el.checked: f.type==="number"?Number(el.value||0):(el.value ? el.value.trim() : "");
         }
       });
+
+      /* 支出記帳專用保護與修復 */
+      if(m==="expenses"){
+        const itemInput = form.elements["item"];
+        if(itemInput){
+          data.item = itemInput.value.trim();
+        }
+        if(!data.item && data.category){
+          data.item = data.category;
+        }
+        if(!data.paid){
+          data.paid = "未付款";
+        }
+      }
+
       if(m==="advances"){
         const itemEl = form.querySelector('[name="item"]') || form.elements["item"];
         if(itemEl) data.item = itemEl.value.trim();
