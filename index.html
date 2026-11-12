@@ -1890,7 +1890,7 @@ async function bootASCoatingSystem(){
             <h3>${isEdit?"修改":"新增"}${cfg.title}</h3>
             <button class="modal-close-btn" id="modalCloseBtn">✕</button>
           </div>
-          <form id="recordForm" data-record-id="${safe(recordId||"")} ">
+          <form id="recordForm" data-record-id="${safe(recordId||"")}">
             ${recordFormHTML(m, current)}
             <div class="actions" style="margin-top:20px; justify-content:flex-end;">
               <button class="secondary" type="button" id="modalCancelBtn">取消</button>
