@@ -712,18 +712,25 @@ th{background:#fafaf8;color:var(--muted);font-size:12px}
 
 <script type="module">
 async function bootASCoatingSystem(){
-  const firebaseAppModule=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
-  const firebaseAuthModule=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
-  const firebaseStoreModule=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-  const {initializeApp}=firebaseAppModule;
-  const {
-    getAuth,GoogleAuthProvider,signInWithPopup,
-    onAuthStateChanged,signOut
-  }=firebaseAuthModule;
-  const {
-    getFirestore,collection,addDoc,getDocs,
-    doc,updateDoc,deleteDoc,serverTimestamp
-  }=firebaseStoreModule;
+  // Firebase 僅供 Gmail 正式／測試帳號使用；免登入訪客模式必須能獨立啟動。
+  let initializeApp,getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged,signOut;
+  let getFirestore,collection,addDoc,getDocs,doc,updateDoc,deleteDoc,serverTimestamp;
+  let firebaseReady=false;
+  let firebaseLoadError=null;
+  try{
+    const [firebaseAppModule,firebaseAuthModule,firebaseStoreModule]=await Promise.all([
+      import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"),
+      import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js")
+    ]);
+    ({initializeApp}=firebaseAppModule);
+    ({getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged,signOut}=firebaseAuthModule);
+    ({getFirestore,collection,addDoc,getDocs,doc,updateDoc,deleteDoc,serverTimestamp}=firebaseStoreModule);
+    firebaseReady=true;
+  }catch(error){
+    firebaseLoadError=error;
+    console.warn("Firebase 模組載入失敗；免登入測試模式仍可使用：",error);
+  }
 
   /* Firebase 專案設定 */
   const firebaseConfig={
@@ -736,11 +743,14 @@ async function bootASCoatingSystem(){
     measurementId:"G-268BJNF40M"
   };
 
-  const fb=initializeApp(firebaseConfig);
-  const auth=getAuth(fb);
-  const db=getFirestore(fb);
-  const provider=new GoogleAuthProvider();
-  provider.setCustomParameters({prompt:"select_account"});
+  let fb=null,auth=null,db=null,provider=null;
+  if(firebaseReady){
+    fb=initializeApp(firebaseConfig);
+    auth=getAuth(fb);
+    db=getFirestore(fb);
+    provider=new GoogleAuthProvider();
+    provider.setCustomParameters({prompt:"select_account"});
+  }
 
   /* 帳號權限 */
   const ADMIN=[
@@ -989,6 +999,7 @@ async function bootASCoatingSystem(){
   $("loginBtn").onclick=async()=>{
     try{
       $("loginError").textContent="";
+      if(!firebaseReady)throw new Error("Firebase 模組載入失敗，請檢查網路或 CDN 連線後重新整理；免登入測試模式不受影響。");
       authActionInProgress=true;
       await signInWithPopup(auth,provider);
     }catch(e){
@@ -1015,7 +1026,7 @@ async function bootASCoatingSystem(){
     catch(e){toast("登出失敗："+e.message)}
   };
 
-  onAuthStateChanged(auth,async u=>{
+  if(firebaseReady) onAuthStateChanged(auth,async u=>{
     if(guestMode)return;
     if(!u){
       if(authActionInProgress)return;
@@ -1041,6 +1052,10 @@ async function bootASCoatingSystem(){
     enter(email,role==="admin"?"管理員｜正式資料":"測試人員｜獨立測試資料",role==="admin"?"正式環境":"Gmail 測試");
     await loadPage("dashboard");
   });
+
+  if(!firebaseReady){
+    console.warn("正式 Gmail 登入暫不可用；可先使用免登入本機測試模式。",firebaseLoadError);
+  }
 
   document.querySelectorAll(".nav").forEach(b=>{
     b.onclick=()=>loadPage(b.dataset.page);
@@ -1845,7 +1860,7 @@ async function bootASCoatingSystem(){
       if(m==="expenses"){
         const form=$("recordForm");
         const category=form?.elements.category;
-        const item=form?.elements.item;
+        const item=form?.elements.namedItem("item");
         const applyExpenseItem=()=>{
           if(!category||!item)return;
           if(category.value && category.value !== "other" && category.value !== "其他"){
@@ -1861,7 +1876,7 @@ async function bootASCoatingSystem(){
         const form=$("recordForm");
         const category=form?.elements.category;
         const share=form?.elements.share;
-        const item=form?.elements.item;
+        const item=form?.elements.namedItem("item");
         if(category){
           category.onchange=()=>{
             if(category.value==="水費" && share) share.value=50;
@@ -2703,76 +2718,78 @@ async function bootASCoatingSystem(){
       if(old) list = list.map(x => (x.id === old.id || x.landlordLinkId === linkId || x.linkedRecordId === linkId ? {...x, ...payload} : x));
       else list.push({id: linkId, landlordLinkId: linkId, linkedRecordId: linkId, ...payload});
       guestWrite(colName, list);
+      return old?.id || linkId;
     } else {
-      if(old) await updateDoc(doc(col(colName), old.id), {...payload, updatedAt: serverTimestamp()});
-      else await addDoc(col(colName), {landlordLinkId: linkId, linkedRecordId: linkId, ...payload, createdAt: serverTimestamp()});
+      if(old){await updateDoc(doc(col(colName), old.id), {...payload, updatedAt: serverTimestamp()});return old.id;}
+      const ref=await addDoc(col(colName), {landlordLinkId: linkId, linkedRecordId: linkId, ...payload, createdAt: serverTimestamp()});
+      return ref.id;
     }
   }
 
   async function syncLandlordToExpenseOrAdvance(landlordData, landlordId){
     const itemText = landlordData.item || landlordData.category || "";
-    const isAdvance = landlordData.direction === "AS-奧迪應付 AS COATING" || itemText.includes("代墊") || (landlordData.note || "").includes("代墊");
-    const linkId = landlordData.linkedRecordId || landlordId;
+    const sourceType = landlordData.sourceType || "";
+    const sourceId = landlordData.linkedRecordId || "";
     const finalAmount = Number(landlordData.amount || 0);
+    const cleanNote = String(landlordData.note || "")
+      .replace(/^由 AS-奧迪往來結算同步｜/, "")
+      .replace(/^由支出記帳自動同步｜/, "")
+      .replace(/^由工作紀錄自動同步｜/, "")
+      .replace(/^幫奧迪代墊付款，向奧迪請款｜/, "");
 
-    if(isAdvance){
-      const isWorkLink = (landlordData.note || "").includes("由工作紀錄");
-      if(isWorkLink){
-        let workList = guest() ? guestRead("work") : await read("work");
-        let targetWork = workList.find(x => x.id === landlordData.linkedRecordId);
-        if(targetWork){
-          let updatedWork = {...targetWork, date: landlordData.date, amount: finalAmount, note: landlordData.note.replace("由工作紀錄自動同步｜", "")};
-          if(guest()){
-            guestWrite("work", workList.map(x => x.id === targetWork.id ? updatedWork : x));
-          } else {
-            await updateDoc(doc(col("work"), targetWork.id), {date: landlordData.date, amount: finalAmount, note: updatedWork.note, updatedAt: serverTimestamp()});
-          }
+    // 工作紀錄：AS-奧迪委託施工的結算調整，回寫原工作紀錄。
+    if(sourceType === "work" || landlordData.category === "AS-奧迪委託施工"){
+      const workList = guest() ? guestRead("work") : await read("work");
+      const target = workList.find(x => x.id === sourceId);
+      if(target){
+        const updated = {...target, date:landlordData.date, amount:finalAmount, note:cleanNote};
+        if(guest()) guestWrite("work", workList.map(x=>x.id===target.id?updated:x));
+        else await updateDoc(doc(col("work"),target.id),{date:updated.date,amount:updated.amount,note:updated.note,updatedAt:serverTimestamp()});
+      } else if(!sourceId){
+        const newWork={date:landlordData.date,plate:"",owner:"",car:"",carColor:"",vendorName:"AS",items:[],amount:finalAmount,paymentStatus:"未收",paymentMethod:"月結",note:cleanNote};
+        await upsertLinkedTarget("work",landlordId,{...newWork,landlordLinkId:landlordId,linkedRecordId:landlordId});
+        const createdList=guest()?guestRead("work"):await read("work");
+        const created=createdList.find(x=>x.id===landlordId||x.linkedRecordId===landlordId||x.landlordLinkId===landlordId);
+        if(created){
+          if(guest())guestWrite("landlord",guestRead("landlord").map(x=>x.id===landlordId?{...x,sourceType:"work",linkedRecordId:created.id}:x));
+          else await updateDoc(doc(col("landlord"),landlordId),{sourceType:"work",linkedRecordId:created.id,updatedAt:serverTimestamp()});
         }
-      } else {
-        const payload = {
-          date: landlordData.date,
-          item: itemText.replace("【代墊請款】", ""),
-          advanceItem: itemText.replace("【代墊請款】", ""),
-          amount: finalAmount,
-          person: "AS-奧迪",
-          status: "待收回",
-          note: "由 AS-奧迪往來結算同步｜" + (landlordData.note || ""),
-          landlordLinkId: landlordId,
-          linkedRecordId: landlordId
-        };
-        await upsertLinkedTarget("advances", linkId, payload);
-        await cleanUnmatchedTarget("expenses", landlordId);
       }
-    } else {
-      const isExpenseLink = (landlordData.note || "").includes("由支出記帳");
-      if(isExpenseLink && landlordData.linkedRecordId){
-        let expList = guest() ? guestRead("expenses") : await read("expenses");
-        let targetExp = expList.find(x => x.id === landlordData.linkedRecordId);
-        if(targetExp){
-          let updatedExp = {...targetExp, date: landlordData.date, category: landlordData.category, amount: finalAmount, note: landlordData.note.replace("由支出記帳自動同步｜", "")};
-          if(guest()){
-            guestWrite("expenses", expList.map(x => x.id === targetExp.id ? updatedExp : x));
-          } else {
-            await updateDoc(doc(col("expenses"), targetExp.id), {date: landlordData.date, category: landlordData.category, amount: finalAmount, note: updatedExp.note, updatedAt: serverTimestamp()});
-          }
-        }
-      } else {
-        const payload = {
-          date: landlordData.date,
-          category: landlordData.category || "other",
-          item: itemText,
-          amount: finalAmount,
-          payee: "AS-奧迪",
-          paymentMethod: "現金",
-          paid: "未付款",
-          note: "由 AS-奧迪往來結算同步｜" + (landlordData.note || ""),
-          landlordLinkId: landlordId,
-          linkedRecordId: landlordId
-        };
-        await upsertLinkedTarget("expenses", linkId, payload);
-        await cleanUnmatchedTarget("advances", landlordId);
-      }
+      return;
     }
+
+    // 代墊管理：只有代墊項目才建立／更新代墊，不把所有「AS 應付」誤判為代墊。
+    const isAdvance = sourceType === "advance" || itemText.includes("代墊") || cleanNote.includes("代墊");
+    if(isAdvance){
+      const advances = guest() ? guestRead("advances") : await read("advances");
+      const target = sourceId ? advances.find(x=>x.id===sourceId) : advances.find(x=>x.landlordLinkId===landlordId || x.linkedRecordId===landlordId);
+      const payload={date:landlordData.date,item:itemText.replace("【代墊請款】",""),advanceItem:itemText.replace("【代墊請款】",""),amount:finalAmount,person:"AS-奧迪",status:target?.status||"待收回",statusDate:target?.statusDate||"",note:cleanNote,landlordLinkId:landlordId,linkedRecordId:landlordId};
+      if(target){
+        if(guest()) guestWrite("advances",advances.map(x=>x.id===target.id?{...target,...payload}:x));
+        else await updateDoc(doc(col("advances"),target.id),{...payload,updatedAt:serverTimestamp()});
+      } else {
+        const createdId=await upsertLinkedTarget("advances",landlordId,payload);
+        if(guest())guestWrite("landlord",guestRead("landlord").map(x=>x.id===landlordId?{...x,sourceType:"advance",linkedRecordId:createdId}:x));
+        else await updateDoc(doc(col("landlord"),landlordId),{sourceType:"advance",linkedRecordId:createdId,updatedAt:serverTimestamp()});
+      }
+      await cleanUnmatchedTarget("expenses",landlordId);
+      return;
+    }
+
+    // 支出記帳：租金、管理費、勞健保、水電等項目回寫支出資料。
+    const expenses = guest() ? guestRead("expenses") : await read("expenses");
+    const target = sourceId ? expenses.find(x=>x.id===sourceId) : expenses.find(x=>x.landlordLinkId===landlordId || x.linkedRecordId===landlordId);
+    const category = landlordData.category || "other";
+    const payload={date:landlordData.date,category,item:itemText,amount:finalAmount,payee:"AS-奧迪",paymentMethod:target?.paymentMethod||"現金",paid:target?.paid||"未付款",paidDate:target?.paidDate||"",note:cleanNote,landlordLinkId:landlordId,linkedRecordId:landlordId};
+    if(target){
+      if(guest()) guestWrite("expenses",expenses.map(x=>x.id===target.id?{...target,...payload}:x));
+      else await updateDoc(doc(col("expenses"),target.id),{...payload,updatedAt:serverTimestamp()});
+    } else {
+      const createdId=await upsertLinkedTarget("expenses",landlordId,payload);
+      if(guest())guestWrite("landlord",guestRead("landlord").map(x=>x.id===landlordId?{...x,sourceType:"expense",linkedRecordId:createdId}:x));
+      else await updateDoc(doc(col("landlord"),landlordId),{sourceType:"expense",linkedRecordId:createdId,updatedAt:serverTimestamp()});
+    }
+    await cleanUnmatchedTarget("advances",landlordId);
   }
 
   async function cleanUnmatchedTarget(colName, landlordId){
@@ -2948,165 +2965,109 @@ async function bootASCoatingSystem(){
   }
 
   async function saveRecord(m, recordId, form){
-    let data={};
-
-    if(m==="work"){
-      const selected=[];
-      document.querySelectorAll(".work-item-check:checked").forEach(c=>{
-        const p=document.querySelector(`[data-price="${CSS.escape(c.dataset.item)}"]`);
-        const item={
-          name:c.dataset.item==="other_custom"||c.dataset.item==="other施工"?"other_custom":c.dataset.item,
-          price:Number(p?.value||0)
-        };
-        if(c.dataset.item==="other施工"){
-          item.customName=form.elements.otherWorkName.value.trim();
-        }
-        selected.push(item);
-      });
-
-      const f=form.elements;
-      const tLast5Val = document.getElementById("transferLast5Input") ? document.getElementById("transferLast5Input").value.trim() : (f.transferLast5 ? f.transferLast5.value.trim() : "");
-      const tDateVal = document.getElementById("transferDateInput") ? document.getElementById("transferDateInput").value : (f.transferDate ? f.transferDate.value : "");
-      
-      const vInputElem = document.getElementById("workVendorInput");
-      const vSelectElem = document.getElementById("workVendorSelect");
-      const vendorVal = (vSelectElem && vSelectElem.value === "CUSTOM_INPUT" && vInputElem) ? vInputElem.value.trim() : (vSelectElem ? vSelectElem.value : (f.vendorName ? f.vendorName.value.trim() : ""));
-
-      const oInputElem = document.getElementById("workOwnerInput");
-      const oSelectElem = document.getElementById("workOwnerSelect");
-      const ownerVal = (oSelectElem && oSelectElem.value === "CUSTOM_INPUT" && oInputElem) ? oInputElem.value.trim() : (oSelectElem ? oSelectElem.value : (f.owner ? f.owner.value.trim() : ""));
-
-      data = {
-        date:f.date.value,
-        plate:f.plate.value.trim(),
-        owner:ownerVal,
-        car:f.car.value.trim(),
-        carColor:f.carColor.value.trim(),
-        vendorName:vendorVal,
-        items:selected,
-        amount:Number(f.amount.value||0),
-        paymentStatus:f.paymentStatus.value,
-        paymentMethod:f.paymentMethod.value,
-        transferLast5: f.paymentMethod.value==="匯款" ? tLast5Val : "",
-        transferDate: f.paymentMethod.value==="匯款" ? tDateVal : "",
-        note:f.note.value.trim()
-      };
-
-      if(data.amount<0){
-        toast("施工總金額不可為負數。");
-        return;
-      }
-    }else{
-      FIELDS[m].forEach(f=>{
-        const el=form.elements[f.key];
-        if(f.type==="vendor_dual"){
-          const dualSel = form.querySelector(`.vendor-dual-select[data-target="${f.key}"]`);
-          const dualInp = form.querySelector(`#${f.key}Input`);
-          if(dualSel && dualSel.value === "CUSTOM_INPUT" && dualInp){
-            data[f.key] = dualInp.value.trim();
-          } else {
-            data[f.key] = dualSel ? dualSel.value : (el && el.value ? el.value.trim() : "");
-          }
-        } else if(el){
-          data[f.key]= f.type==="checkbox"?el.checked: f.type==="number"?Number(el.value||0):(el.value ? el.value.trim() : "");
-        }
-      });
-
-      /* 支出記帳專用保護與修復 */
-      if(m==="expenses"){
-        const itemInput = form.elements["item"];
-        if(itemInput){
-          data.item = itemInput.value.trim();
-        }
-        if(!data.item && data.category){
-          data.item = data.category;
-        }
-        if(!data.paid){
-          data.paid = "未付款";
-        }
-      }
-
-      if(m==="advances"){
-        const itemEl = form.querySelector('[name="item"]') || form.elements["item"];
-        if(itemEl) data.item = itemEl.value.trim();
-        const statusEl = form.querySelector('[name="status"]');
-        if(statusEl && statusEl.value !== "已收回" && statusEl.value !== "已抵扣"){
-          data.statusDate = "";
-        }
-      }
-    }
-
-    if((m==="expenses"&&isASPerson(data.payee)) || (m==="advances"&&isASPerson(data.person))){
-      if(m==="expenses")data.payee="AS-奧迪";
-      if(m==="advances")data.person="AS-奧迪";
-    }
-
-    if(m==="landlord"){
-      if(data.category==="水費"&&(data.share===0||data.share===""))data.share=50;
-      if(data.category==="電費"&&(data.share===0||data.share===""))data.share=40;
-    }
-
+    const submitButton=form.querySelector('button[type="submit"]');
+    if(submitButton?.disabled)return;
+    if(submitButton){submitButton.disabled=true;submitButton.textContent="儲存中…";}
     try{
-      let savedId=recordId;
-      if(guest()){
-        let list=guestRead(m);
-        if(recordId){
-          let existing = list.find(r => r.id === recordId);
-          if(existing && existing.landlordLinkId) data.landlordLinkId = existing.landlordLinkId;
-          list=list.map(r=>r.id===recordId?{...r,...data}:r);
-        }else{
-          savedId="guest_"+Date.now();
-          list.push({id:savedId,...data});
+      let data={};
+      if(m==="work"){
+        const selected=[];
+        document.querySelectorAll(".work-item-check:checked").forEach(c=>{
+          const p=document.querySelector(`[data-price="${CSS.escape(c.dataset.item)}"]`);
+          const item={name:c.dataset.item==="other_custom"||c.dataset.item==="other施工"?"other_custom":c.dataset.item,price:Number(p?.value||0)};
+          if(c.dataset.item==="其他施工") item.customName=form.querySelector('[name="otherWorkName"]')?.value.trim()||"";
+          selected.push(item);
+        });
+        const field=k=>form.elements.namedItem(k);
+        const vSelect=form.querySelector("#workVendorSelect"),vInput=form.querySelector("#workVendorInput");
+        const oSelect=form.querySelector("#workOwnerSelect"),oInput=form.querySelector("#workOwnerInput");
+        data={date:field("date")?.value||"",plate:field("plate")?.value.trim()||"",owner:oSelect?.value==="CUSTOM_INPUT"?(oInput?.value.trim()||""):(oSelect?.value||oInput?.value.trim()||""),car:field("car")?.value.trim()||"",carColor:field("carColor")?.value.trim()||"",vendorName:vSelect?.value==="CUSTOM_INPUT"?(vInput?.value.trim()||""):(vSelect?.value||vInput?.value.trim()||""),items:selected,amount:Number(field("amount")?.value||0),paymentStatus:field("paymentStatus")?.value||"未收",paymentMethod:field("paymentMethod")?.value||"現金",transferLast5:field("paymentMethod")?.value==="匯款"?(field("transferLast5")?.value.trim()||""):"",transferDate:field("paymentMethod")?.value==="匯款"?(field("transferDate")?.value||""):"",note:field("note")?.value.trim()||""};
+        if(!data.date||!data.plate){toast("請填寫施工日期及車牌。");return;}
+        if(data.amount<0){toast("施工總金額不可為負數。");return;}
+      }else{
+        const fields=FIELDS[m];
+        if(!fields)throw new Error("找不到此模組的欄位設定："+m);
+        for(const f of fields){
+          const el=form.elements.namedItem(f.key);
+          if(f.type==="vendor_dual"){
+            const dualSel=form.querySelector(`.vendor-dual-select[data-target="${f.key}"]`);
+            const dualInp=form.querySelector(`#${f.key}Input`);
+            data[f.key]=dualSel?.value==="CUSTOM_INPUT"?(dualInp?.value.trim()||""):(dualSel?.value||el?.value?.trim?.()||"");
+          }else if(el){
+            data[f.key]=f.type==="checkbox"?el.checked:f.type==="number"?Number(el.value||0):(el.value??"").toString().trim();
+          }
         }
+        if(m==="expenses"){
+          const itemInput=form.querySelector('[name="item"]');
+          if(itemInput)data.item=itemInput.value.trim();
+          if(!data.item&&data.category)data.item=data.category;
+          if(!data.paid)data.paid="未付款";
+        }
+        if(m==="advances"){
+          const itemEl=form.querySelector('[name="item"]');
+          if(itemEl)data.item=itemEl.value.trim();
+          if(data.status!=="已收回"&&data.status!=="已抵扣")data.statusDate="";
+        }
+      }
+
+      if((m==="expenses"&&isASPerson(data.payee))||(m==="advances"&&isASPerson(data.person))){
+        if(m==="expenses")data.payee="AS-奧迪";
+        if(m==="advances")data.person="AS-奧迪";
+      }
+      if(m==="landlord"){
+        if(data.category==="水費"&&(data.share===0||data.share===""))data.share=50;
+        if(data.category==="電費"&&(data.share===0||data.share===""))data.share=40;
+      }
+
+      let savedId=recordId;
+      const existingList=guest()?guestRead(m):await read(m);
+      const existing=recordId?existingList.find(r=>r.id===recordId):null;
+      if(existing?.landlordLinkId)data.landlordLinkId=existing.landlordLinkId;
+      if(guest()){
+        let list=existingList;
+        if(recordId)list=list.map(r=>r.id===recordId?{...r,...data}:r);
+        else{savedId="guest_"+Date.now()+"_"+Math.random().toString(36).slice(2,7);list.push({id:savedId,...data});}
         guestWrite(m,list);
       }else{
-        const c=col(m);
-        if(recordId){
-          await updateDoc(doc(c,recordId),{...data,updatedAt:serverTimestamp()});
+        if(recordId)await updateDoc(doc(col(m),recordId),{...data,updatedAt:serverTimestamp()});
+        else{const ref=await addDoc(col(m),{...data,createdAt:serverTimestamp()});savedId=ref.id;}
+      }
+
+      if(m==="work"){
+        if(isASPerson(data.vendorName)){
+          const linked=await syncWorkToLandlord(data,savedId);
+          if(linked){if(guest())guestWrite("work",guestRead("work").map(r=>r.id===savedId?{...r,landlordLinkId:linked}:r));else await updateDoc(doc(col("work"),savedId),{landlordLinkId:linked});}
         }else{
-          const ref=await addDoc(c,{...data,createdAt:serverTimestamp()});
-          savedId=ref.id;
+          const ll=guest()?guestRead("landlord"):await read("landlord");
+          const linked=ll.filter(x=>x.sourceType==="work"&&x.linkedRecordId===savedId);
+          if(guest())guestWrite("landlord",ll.filter(x=>!linked.some(y=>y.id===x.id)));
+          else await Promise.all(linked.map(x=>deleteDoc(doc(col("landlord"),x.id))));
         }
       }
-
-      if(m==="work" && isASPerson(data.vendorName)){
-        const linked=await syncWorkToLandlord(data,savedId);
-        if(linked){
-          if(guest())guestWrite("work",guestRead("work").map(r=>r.id===savedId?{...r,landlordLinkId:linked}:r));
-          else await updateDoc(doc(col("work"),savedId),{landlordLinkId:linked});
-        }
-      } else if(m==="work" && !isASPerson(data.vendorName)){
-        let landlordList = guest() ? guestRead("landlord") : await read("landlord");
-        let matched = landlordList.find(x => x.linkedRecordId === savedId || x.id === ("work_link_" + savedId));
-        if(matched){
-          if(guest()) guestWrite("landlord", landlordList.filter(x => x.id !== matched.id));
-          else await deleteDoc(doc(col("landlord"), matched.id));
-        }
-      }
-
       if(m==="expenses"){
         const linked=await syncExpenseToLandlord(data,savedId);
-        if(linked){
-          if(guest())guestWrite("expenses",guestRead("expenses").map(r=>r.id===savedId?{...r,landlordLinkId:linked}:r));
-          else await updateDoc(doc(col("expenses"),savedId),{landlordLinkId:linked});
+        if(linked){if(guest())guestWrite("expenses",guestRead("expenses").map(r=>r.id===savedId?{...r,landlordLinkId:linked}:r));else await updateDoc(doc(col("expenses"),savedId),{landlordLinkId:linked});}
+        else if(existing?.landlordLinkId){
+          const ll=guest()?guestRead("landlord"):await read("landlord");
+          const matches=ll.filter(x=>x.linkedRecordId===savedId||x.id===existing.landlordLinkId);
+          if(guest())guestWrite("landlord",ll.filter(x=>!matches.some(y=>y.id===x.id)));
+          else await Promise.all(matches.map(x=>deleteDoc(doc(col("landlord"),x.id))));
         }
       }
       if(m==="advances"){
-        const linked = await syncAdvanceToLandlord(data,savedId);
-        if(linked){
-          if(guest())guestWrite("advances",guestRead("advances").map(r=>r.id===savedId?{...r,landlordLinkId:linked}:r));
-          else await updateDoc(doc(col("advances"),savedId),{landlordLinkId:linked});
-        } else {
-          let landlordList = guest() ? guestRead("landlord") : await read("landlord");
-          let matched = landlordList.find(x => x.linkedRecordId === savedId || x.id === ("advance_link_" + savedId));
-          if(matched){
-            if(guest()) guestWrite("landlord", landlordList.filter(x => x.id !== matched.id));
-            else await deleteDoc(doc(col("landlord"), matched.id));
-          }
+        const linked=await syncAdvanceToLandlord(data,savedId);
+        if(linked){if(guest())guestWrite("advances",guestRead("advances").map(r=>r.id===savedId?{...r,landlordLinkId:linked}:r));else await updateDoc(doc(col("advances"),savedId),{landlordLinkId:linked});}
+        else if(existing?.landlordLinkId){
+          const ll=guest()?guestRead("landlord"):await read("landlord");
+          const matches=ll.filter(x=>x.linkedRecordId===savedId||x.id===existing.landlordLinkId);
+          if(guest())guestWrite("landlord",ll.filter(x=>!matches.some(y=>y.id===x.id)));
+          else await Promise.all(matches.map(x=>deleteDoc(doc(col("landlord"),x.id))));
         }
       }
       if(m==="landlord"){
-        await syncLandlordToExpenseOrAdvance(data, savedId);
+        const ll=guest()?guestRead("landlord"):await read("landlord");
+        const savedLandlord=ll.find(x=>x.id===savedId)||{...data,id:savedId};
+        await syncLandlordToExpenseOrAdvance(savedLandlord,savedId);
       }
 
       closeModal();
@@ -3115,7 +3076,10 @@ async function bootASCoatingSystem(){
       renderModule(m);
       toast("資料儲存成功！");
     }catch(e){
-      toast("儲存失敗："+e.message);
+      console.error("saveRecord error",e);
+      toast("儲存失敗："+(e?.message||String(e)));
+    }finally{
+      if(submitButton){submitButton.disabled=false;submitButton.textContent="儲存資料";}
     }
   }
 
@@ -3141,12 +3105,12 @@ async function bootASCoatingSystem(){
 
       if(m==="landlord"){
         if(current?.linkedRecordId){
-          let colName = (current.note||"").includes("由代墊") ? "advances" : "expenses";
-          let tList = guest() ? guestRead(colName) : await read(colName);
-          let target = tList.find(x => x.id === current.linkedRecordId);
+          const colName=current.sourceType==="work"?"work":current.sourceType==="advance"?"advances":(current.sourceType==="expense"?"expenses":((current.category==="AS-奧迪委託施工")?"work":((String(current.item||"").includes("代墊")||String(current.note||"").includes("代墊"))?"advances":"expenses")));
+          const tList=guest()?guestRead(colName):await read(colName);
+          const target=tList.find(x=>x.id===current.linkedRecordId||x.landlordLinkId===id||x.linkedRecordId===id);
           if(target){
-            if(guest()) guestWrite(colName, tList.filter(x => x.id !== target.id));
-            else await deleteDoc(doc(col(colName), target.id));
+            if(guest())guestWrite(colName,tList.filter(x=>x.id!==target.id));
+            else await deleteDoc(doc(col(colName),target.id));
           }
         }
       }
